@@ -1,1 +1,4 @@
-console.log("CALENDUCK")
+const express = require("express");
+const app = express();
+
+app.use(errorHandler);
