@@ -14,7 +14,6 @@ const checkValidity = (req, res, next) => {
     if (userEmail && !regexEmail.test(userEmail)) {
         return res.sendStatus(400);
     }
-
     return next();
 }
 
