@@ -1,7 +1,7 @@
 const express = require("express");
 
 const errorHandler = require("./src/middlewares/errorHandler");
-const interceptor = require("./src/middlewares/interceptor")
+const interceptor = require("./src/middlewares/interceptor");
 
 const authApi = require("./src/routes/auth");
 const managersApi = require("./src/routes/managers");
@@ -32,5 +32,5 @@ app.use(notFoundApi);
 app.use(errorHandler);
 
 app.listen(port, () => {
-    console.log(`${port}번에서 HTTP Web Server 실행`);
-})
+  console.log(`${port}번에서 HTTP Web Server 실행`);
+});
