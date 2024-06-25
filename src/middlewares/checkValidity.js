@@ -6,13 +6,13 @@ const checkValidity = (req, res, next) => {
     const { userId, userPw, userEmail } = req.body;
 
     if (userId && !regexId.test(userId)) {
-        return res.sendStatus(400);
+        return res.status(400).end();
     }
     if (userPw && !regexPw.test(userPw)) {
-        return res.sendStatus(400);
+        return res.status(400).end();
     }
     if (userEmail && !regexEmail.test(userEmail)) {
-        return res.sendStatus(400);
+        return res.status(400).end();
     }
     return next();
 }
