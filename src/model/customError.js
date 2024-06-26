@@ -49,6 +49,7 @@ class InternalSercerError extends CustomError {
 }
 
 module.exports = {
+  CustomError,
   BadRequestError,
   UnAuthorizedError,
   ForbiddenError,
