@@ -3,6 +3,7 @@ const express = require("express");
 const errorHandler = require("./src/middlewares/errorHandler");
 const interceptor = require("./src/middlewares/interceptor");
 const notFoundApi = require("./src/middlewares/notFoundApi");
+const limiter = require("./src/middlewares/apiLimiter");
 
 const authApi = require("./src/routes/auth");
 const managersApi = require("./src/routes/managers");
@@ -15,6 +16,8 @@ const utillsApi = require("./src/routes/utills");
 require("dotenv").config();
 const app = express();
 const port = process.env.HTTP_PORT;
+
+app.use(limiter);
 
 app.use("/auth", authApi);
 app.use("/managers", managersApi);
