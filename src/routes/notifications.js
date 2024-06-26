@@ -4,7 +4,7 @@ const checkAuth = require("../middlewares/checkAuth");
 
 router.get("/", checkAuth, async (req, res, next) => {
   const loginUser = req.decoded;
-  const page = req.body.page;
+  const { page } = req.body;
   const pageSize = 20;
   const skipAmount = (page - 1) * pageSize;
 
@@ -43,12 +43,13 @@ router.get("/counts", checkAuth, async (req, res, next) => {
   const loginUser = req.decoded;
 
   try {
-    const countNotiricationQueryResult = notificationSchema.countDocuments({
-      user_idx: loginUser.idx,
-      is_read: false,
-    });
+    const countNotiricationQueryResult =
+      await notificationSchema.countDocuments({
+        user_idx: loginUser.idx,
+        is_read: false,
+      });
     const count = countNotiricationQueryResult;
-
+    console.log(count);
     res.status(200).send({
       notif_count: count,
     });
