@@ -36,6 +36,12 @@ class ConflictError extends CustomError {
   }
 }
 
+class TooManyRequests extends CustomError {
+  constructor(message) {
+    super(429, message);
+  }
+}
+
 class InternalSercerError extends CustomError {
   constructor(message) {
     super(500, message);
