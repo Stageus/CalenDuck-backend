@@ -1,4 +1,4 @@
-const notificationSchema = require("../../database/mongooseSchema/loggingSchema");
+const notificationSchema = require("../../database/mongooseSchema/notificationSchema");
 
 const makeNotification = async (receiverIdx, type, data) => {
   if (type === "import") {
