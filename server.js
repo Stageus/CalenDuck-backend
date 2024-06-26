@@ -1,4 +1,5 @@
 const express = require("express");
+const mongoose = require("./database/connect/mongodb");
 
 const errorHandler = require("./src/middlewares/errorHandler");
 const interceptor = require("./src/middlewares/interceptor");
@@ -16,6 +17,8 @@ const utillsApi = require("./src/routes/utills");
 require("dotenv").config();
 const app = express();
 const port = process.env.HTTP_PORT;
+app.use(express.json());
+mongoose();
 
 app.use(limiter);
 
