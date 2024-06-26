@@ -36,7 +36,7 @@ class ConflictError extends CustomError {
   }
 }
 
-class TooManyRequests extends CustomError {
+class TooManyRequestsError extends CustomError {
   constructor(message) {
     super(429, message);
   }
@@ -54,5 +54,6 @@ module.exports = {
   ForbiddenError,
   NotFoundError,
   ConflictError,
+  TooManyRequestsError,
   InternalSercerError,
 };
