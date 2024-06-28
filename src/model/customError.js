@@ -42,7 +42,7 @@ class TooManyRequestsError extends CustomError {
   }
 }
 
-class InternalSercerError extends CustomError {
+class InternalServerError extends CustomError {
   constructor(message) {
     super(500, message);
   }
@@ -56,5 +56,5 @@ module.exports = {
   NotFoundError,
   ConflictError,
   TooManyRequestsError,
-  InternalSercerError,
+  InternalServerError,
 };
