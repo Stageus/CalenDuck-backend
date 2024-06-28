@@ -1,26 +1,29 @@
 const router = require("express").Router();
 
-const connectMongoDB = require("../../database/connect/mongodb");
+const { InternalSercerError } = require("../model/customError");
+
 const psql = require("../../database/connect/postgre");
 
-router.get("/", async (req, res) => {
-    try {
-        const db = await connectMongoDB();
-        const data = await db.collection("import_notification").find().toArray();
-        console.log(data);
-        await db.collection("import_notification").insertOne(
-            {
-                "name": "name",
-                "price": 200
-            }
-        )
+router.get("/users", async (req, res) => {
+    const result = {
+        "data": null
+    }
+    req.api = "GET /master/users";
 
-        const data1 = await psql.query("select * from test");
-        console.log(data1.rows);
+    try {
+        const selectUserQueryResult = await psql.query(`
+            SELECT idx, name FROM calenduck.user
+        `);
+
+        if (selectUserQueryResult.rows.length === 0) {
+            return res.sendStatus(204);
+        }
+
+        result.data = selectUserQueryResult.rows;
+        return res.sendStatus(200);
     } catch (err) {
         console.log(err);
-    } finally {
-        res.sendStatus(200);
+        throw new InternalSercerError("Internet Server Error");
     }
 })
 
