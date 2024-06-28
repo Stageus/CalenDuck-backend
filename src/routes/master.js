@@ -27,4 +27,28 @@ router.get("/users", async (req, res) => {
     }
 })
 
+router.get("/interest", async (req, res) => {
+    const result = {
+        "data": null
+    }
+    req.api = "GET /master/interest";
+
+    try {
+        const selectInterestQueryResult = await psql.query(`
+            SELECT idx, interest FROM calenduck.interest
+            WHERE is_assigned=false
+        `)
+
+        if (selectInterestQueryResult.rows.length === 0) {
+            return res.sendStatus(204);
+        }
+
+        result.data = selectInterestQueryResult.rows;
+        return res.sendStatus(200);
+    } catch (err) {
+        console.log(err);
+        throw new InternalSercerError("Internet Server Error");
+    }
+})
+
 module.exports = router;
