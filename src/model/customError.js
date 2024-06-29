@@ -12,7 +12,7 @@ class BadRequestError extends CustomError {
   }
 }
 
-class UnAuthorizedError extends CustomError {
+class UnauthorizedError extends CustomError {
   constructor(message) {
     super(401, message);
   }
@@ -42,7 +42,7 @@ class TooManyRequestsError extends CustomError {
   }
 }
 
-class InternalSercerError extends CustomError {
+class InternalServerError extends CustomError {
   constructor(message) {
     super(500, message);
   }
@@ -51,10 +51,10 @@ class InternalSercerError extends CustomError {
 module.exports = {
   CustomError,
   BadRequestError,
-  UnAuthorizedError,
+  UnauthorizedError,
   ForbiddenError,
   NotFoundError,
   ConflictError,
   TooManyRequestsError,
-  InternalSercerError,
+  InternalServerError,
 };
