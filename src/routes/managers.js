@@ -67,10 +67,6 @@ router.put("/schedules/interests/:interest_idx/:idx", async (req, res) => {
 router.put("/schedules/interests/:interest_idx/:idx", async (req, res) => {
     const { interest_idx, idx } = req.params;
 
-    if (!interest_idx || !idx) {
-        throw new BadRequestError("Invalid path parameters");
-    }
-
     try {
         // 스케줄 존재 여부 확인
         const selectInterestScheduleResultQuery = await psql.query(`
@@ -84,7 +80,7 @@ router.put("/schedules/interests/:interest_idx/:idx", async (req, res) => {
             throw new NotFoundError("Not Found");
         }
 
-         // 스케줄 삭제
+        // 스케줄 삭제
         const deleteInterestScheduleResultQuery = await psql.query(`
             DELETE FROM calenduck.interest_schedule
             WHERE idx = $1 AND interest_idx = $2
@@ -96,9 +92,7 @@ router.put("/schedules/interests/:interest_idx/:idx", async (req, res) => {
         return res.sendStatus(201);
     } catch (err) {
         console.error(err);
-        if (!(err instanceof NotFoundError)) {
-            throw new InternalServerError("Internal Server Error");
-        }
+        throw new InternalServerError("Internal Server Error");
     } 
 })
 
