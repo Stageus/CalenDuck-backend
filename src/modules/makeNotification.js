@@ -1,5 +1,12 @@
 const notificationSchema = require("../../database/mongooseSchema/notificationSchema");
 
+/**
+ *
+ * @param {number} receiverIdx
+ * @param {"import" | "manager" | "reply"} type
+ * @param {*} data
+ */
+
 const makeNotification = async (receiverIdx, type, data) => {
   if (type === "import") {
     await notificationSchema.create({
