@@ -32,13 +32,22 @@ router.post("/schedules/interests", async (req, res) => {
 router.put("/schedules/interests/:interest_idx/:idx", async (req, res) => {
     const { interest_idx, idx } = req.params;
     const { date_time, contents, priority } = req.body;
-    const result = {
-        "data": null
-    }
-
+    
     try {
-        const updateInterestScheduleResultQuery = await psql.query(
-            `
+        // 스케줄 존재 여부 확인
+        const selectInterestScheduleResultQuery = await psql.query(`
+            SELECT * FROM calenduck.interest_schedule
+            WHERE idx = $1 AND interest_idx = $2;
+        `, 
+            [idx, interest_idx]
+        );
+
+        if (selectInterestScheduleResultQuery.rows.length === 0) {
+            throw new NotFoundError("Not Found");
+        }
+
+        // 스케줄 수정
+        const updateInterestScheduleResultQuery = await psql.query(`
             UPDATE calenduck.interest_schedule
             SET time = $1, contents = $2, priority = $3
             WHERE idx = $4 AND interest_idx = $5
@@ -46,17 +55,11 @@ router.put("/schedules/interests/:interest_idx/:idx", async (req, res) => {
         `, 
             [date_time, contents, priority, idx, interest_idx]
         );
-        
-        if (updateInterestScheduleResultQuery.rows.length === 0) {
-            throw new NotFoundError("Not Found");
-        }
 
         return res.sendStatus(201);
     } catch (err) {
         console.error(err);
-        if (!(err instanceof NotFoundError)) {
-            throw new InternalServerError("Internal Server Error");
-        }
+        throw new InternalServerError("Internal Server Error");
     } 
 })
 
