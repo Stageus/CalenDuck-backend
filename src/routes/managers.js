@@ -19,7 +19,8 @@ router.post("/schedules/interests", async (req, res) => {
             [interest_idx, date_time, contents, priority]
         );
 
-        result.data = interestScheduleInsertResultQuery.rows[0];
+        result.data = insertInterestScheduleResultQuery.rows[0];
+
         return res.sendStatus(201);
     } catch (err) {
         console.error(err);
