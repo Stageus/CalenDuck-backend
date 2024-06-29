@@ -1,18 +1,17 @@
 const router = require("express").Router();
 
-const { InternalSercerError } = require("../model/customError");
+const { InternalServerError } = require("../model/customError");
 
 const psql = require("../../database/connect/postgre");
 
-router.get("/users", async (req, res) => {
+router.get("/users", async (req, res, next) => {
     const result = {
         "data": null
     }
-    req.api = "GET /master/users";
 
     try {
         const selectUserQueryResult = await psql.query(`
-            SELECT idx, name FROM calenduck.user
+            SELECT idx, name FROM calenduck.userr
         `);
 
         if (selectUserQueryResult.rows.length === 0) {
@@ -23,15 +22,14 @@ router.get("/users", async (req, res) => {
         return res.sendStatus(200);
     } catch (err) {
         console.log(err);
-        throw new InternalSercerError("Internet Server Error");
+        return next(new InternalServerError("Internet Server Error"));
     }
 })
 
-router.get("/interest", async (req, res) => {
+router.get("/interest", async (req, res, next) => {
     const result = {
         "data": null
     }
-    req.api = "GET /master/interest";
 
     try {
         const selectInterestQueryResult = await psql.query(`
@@ -47,7 +45,7 @@ router.get("/interest", async (req, res) => {
         return res.sendStatus(200);
     } catch (err) {
         console.log(err);
-        throw new InternalSercerError("Internet Server Error");
+        return next(new InternalServerError("Internet Server Error"));
     }
 })
 
