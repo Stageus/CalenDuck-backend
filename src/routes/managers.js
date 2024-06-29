@@ -2,7 +2,7 @@
 const router = require("express").Router();
 
 const psql = require("../../database/connect/postgre");
-const { NotFoundError, InternalServerError } = require("../model/customError");
+const { BadRequestError, NotFoundError, InternalServerError } = require("../model/customError");
 
 // 관심사 스케줄 생성
 router.post("/schedules/interests", async (req, res) => {
@@ -50,6 +50,45 @@ router.put("/schedules/interests/:interest_idx/:idx", async (req, res) => {
             throw new NotFoundError("Not Found");
         }
 
+        return res.sendStatus(201);
+    } catch (err) {
+        console.error(err);
+        if (!(err instanceof NotFoundError)) {
+            throw new InternalServerError("Internal Server Error");
+        }
+    } 
+})
+
+// 관심사 스케줄 삭제
+router.put("/schedules/interests/:interest_idx/:idx", async (req, res) => {
+    const { interest_idx, idx } = req.params;
+
+    if (!interest_idx || !idx) {
+        throw new BadRequestError("Invalid path parameters");
+    }
+
+    try {
+        // 스케줄 존재 여부 확인
+        const selectInterestScheduleResultQuery = await psql.query(`
+            SELECT * FROM calenduck.interest_schedule
+            WHERE idx = $1 AND interest_idx = $2;
+        `, 
+            [idx, interest_idx]
+        );
+
+        if (selectInterestScheduleResultQuery.rows.length === 0) {
+            throw new NotFoundError("Not Found");
+        }
+
+         // 스케줄 삭제
+        const deleteInterestScheduleResultQuery = await psql.query(`
+            DELETE FROM calenduck.interest_schedule
+            WHERE idx = $1 AND interest_idx = $2
+            RETURNING *
+        `, 
+            [idx, interest_idx]
+        );
+        
         return res.sendStatus(201);
     } catch (err) {
         console.error(err);
