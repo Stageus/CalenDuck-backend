@@ -27,7 +27,7 @@ router.get("/", checkAuth, async (req, res, next) => {
       { is_read: true }
     );
 
-    if (notificationList.length === 0) {
+    if (!notificationList.length) {
       return res.status(204).end();
     }
 
@@ -49,7 +49,7 @@ router.get("/counts", checkAuth, async (req, res, next) => {
         is_read: false,
       });
     const count = countNotiricationQueryResult;
-    console.log(count);
+
     res.status(200).send({
       notif_count: count,
     });
