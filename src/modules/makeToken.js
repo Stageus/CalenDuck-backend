@@ -20,6 +20,4 @@ const makeToken = (Object, type) => {
   return accessToken;
 };
 
-makeToken({});
-
 module.exports = makeToken;
