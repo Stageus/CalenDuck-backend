@@ -12,9 +12,23 @@ const router = require("express").Router();
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
+/**
+ *
+ * @param {import("express").RequestHandler} requestHandler
+ * @returns {import("express").RequestHandler}
+ */
+const endRequestHandler = (requestHandler) => {
+  return async (req, res, next) => {
+    try {
+      await requestHandler(req, res, next);
+    } catch (err) {
+      next(err);
+    }
+  };
+};
+
 router.post("/login", checkValidity, async (req, res, next) => {
   const { id, pw } = req.body;
-
   try {
     const selectLoginQueryResult = await psql.query(
       `SELECT CU.idx, CU.role  
@@ -37,7 +51,7 @@ router.post("/login", checkValidity, async (req, res, next) => {
 
     res.cookie("access_token", accessToken);
 
-    return res.status(200).send({});
+    return res.sendStatus(201);
   } catch (err) {
     return next(err);
   }
