@@ -154,7 +154,7 @@ router.get("/interests", checkAuth, async (req, res, next) => {
   }
 });
 
-router.post("/interests/:idx", async (req, res, next) => {
+router.post("/interests/:idx", checkAuth, async (req, res, next) => {
   const { idx: interestIdx } = req.params;
   const loginUser = req.decoded;
 
@@ -182,6 +182,32 @@ router.post("/interests/:idx", async (req, res, next) => {
 
     await psql.query(
       `INSERT INTO calenduck.user_interest(user_idx, interest_idx) VALUES($1, $2)`,
+      [loginUser.idx, interestIdx]
+    );
+
+    res.sendStatus(201);
+  } catch (err) {
+    return next(err);
+  }
+});
+
+router.delete("/interests/:idx", checkAuth, async (req, res, next) => {
+  const { idx: interestIdx } = req.params;
+  const loginUser = req.decoded;
+
+  try {
+    const isInterest = (
+      await psql.query(`SELECT idx FROM calenduck.interest WHERE idx=$1`, [
+        interestIdx,
+      ])
+    ).rows[0];
+
+    if (!isInterest) {
+      throw new NotFoundError("관심사 없음");
+    }
+
+    await psql.query(
+      `DELETE FROM calenduck.user_interest WHERE user_idx =$1 AND interest_idx=$2`,
       [loginUser.idx, interestIdx]
     );
 
