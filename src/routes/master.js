@@ -3,10 +3,13 @@ const router = require("express").Router();
 const {
     BadRequestError,
     InternalServerError,
-    ConflictError
+    ConflictError,
+    NotFoundError
 } = require("../model/customError");
 
 const psql = require("../../database/connect/postgre");
+const { MongoTransactionError } = require("mongodb");
+const { Connection } = require("pg");
 
 router.get("/users", async (req, res, next) => {
     try {
@@ -112,13 +115,53 @@ router.post("/interests", async (req, res, next) => {
         `, [interestName]);
 
         if (interestData.rows.length !== 0) {
-            return next(new ConflictError("Duplicated interest name"));
+            return next(new ConflictError("duplicated interest name"));
         }
 
         await psql.query(`
             INSERT INTO calenduck.interest(interest)
             VALUES($1)
         `, [interestData]);
+
+        return res.sendStatus(201);
+    } catch (err) {
+        console.log(err);
+        return next(new InternalServerError("Internal Server Error"));
+    }
+})
+
+router.post("/users/permission", async (req, res, next) => {
+    const { userIdx, interestIdx } = req.body;
+
+    if (!userIdx || !interestIdx) {
+        return next(new BadRequestError("cannot find req body"));
+    }
+
+    try {
+        const userWithInteres = await psql.query(`
+            SELECT CU.idx, CI.idx
+            FROM calenduck.user CU
+            CROSS JOIN calenduck.interest CI
+            WHERE CU.idx = $1 AND CI.idx = $2;    
+        `, [userIdx, interestIdx]);
+
+        if (userWithInteres.rows.length === 0) {
+            return next(new NotFoundError("cannot find info"));
+        }
+
+        const managerData = await psql.query(`
+            SELECT user_idx FROM calenduck.manager
+            WHERE user_idx = $1    
+        `, [userIdx]);
+
+        if (managerData.rows.length !== 0) {
+            return next(new ConflictError("duplicated info"));
+        }
+
+        await psql.query(`
+            INSERT INTO calenduck.manager(user_idx, interest_idx)
+            VALUES($1, $2)
+        `, [userIdx, interestIdx]);
 
         return res.sendStatus(201);
     } catch (err) {
