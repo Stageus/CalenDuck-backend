@@ -2,7 +2,8 @@ const router = require("express").Router();
 
 const {
     BadRequestError,
-    InternalServerError
+    InternalServerError,
+    ConflictError
 } = require("../model/customError");
 
 const psql = require("../../database/connect/postgre");
@@ -82,7 +83,7 @@ router.get("/asks", async (req, res, next) => {
             JOIN calenduck.user CU
             ON CA.user_idx=CU.idx
             WHERE CA.ask_category_idx = $1; 
-        `);
+        `, [categoryIdx]); //
 
         if (askWithUser.rows.length === 0) {
             return res.sendStatus(204);
@@ -91,6 +92,35 @@ router.get("/asks", async (req, res, next) => {
         return res.status(200).send({
             data: askWithUser
         });
+    } catch (err) {
+        console.log(err);
+        return next(new InternalServerError("Internal Server Error"));
+    }
+})
+
+router.post("/interests", async (req, res, next) => {
+    const { interestName } = req.body;
+
+    if (!interestName) {
+        return next(new BadRequestError("cannot find interest name"));
+    }
+
+    try {
+        const interestData = await psql.query(`
+            SELECT idx FROM calenduck.interest
+            WHERE interest = $1    
+        `, [interestName]);
+
+        if (interestData.rows.length !== 0) {
+            return next(new ConflictError("Duplicated interest name"));
+        }
+
+        await psql.query(`
+            INSERT INTO calenduck.interest(interest)
+            VALUES($1)
+        `, [interestData]);
+
+        return res.sendStatus(201);
     } catch (err) {
         console.log(err);
         return next(new InternalServerError("Internal Server Error"));
