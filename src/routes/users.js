@@ -66,4 +66,36 @@ router.get(
   }
 );
 
+router.delete(
+  "/",
+  endRequestHandler(async (req, res) => {
+    const loginUser = req.decoded;
+
+    const psqlClient = await psql.connect();
+
+    try {
+      await psqlClient.query("BEGIN");
+
+      const deleteUserQueryResult = await psqlClient.query(
+        `DELETE FROM calenduck.user WHERE idx = $1 RETURNING login_idx`,
+        [loginUser.idx]
+      );
+      const loginIdx = deleteUserQueryResult.rows[0].login_idx;
+
+      await psqlClient.query(`DELETE FROM calenduck.login WHERE idx=$1`, [
+        loginIdx,
+      ]);
+
+      await psqlClient.query("COMMIT");
+
+      return res.sendStatus(201);
+    } catch (err) {
+      await psqlClient.query("ROLLBACK");
+      throw err;
+    } finally {
+      psqlClient.release();
+    }
+  })
+);
+
 module.exports = router;
