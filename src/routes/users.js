@@ -57,4 +57,13 @@ router.post("/login", checkValidity, async (req, res, next) => {
   }
 });
 
+router.get(
+  "/check-id",
+  checkValidity,
+  checkDuplicatedId,
+  async (req, res, next) => {
+    return res.sendStatus(201);
+  }
+);
+
 module.exports = router;
