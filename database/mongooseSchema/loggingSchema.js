@@ -19,7 +19,7 @@ const loggingSchema = new mongoose.Schema({
     required: true,
   },
 });
-logingSchema.set("timestamps", {
+loggingSchema.set("timestamps", {
   createdAt: "time",
   updatedAt: false,
 });
