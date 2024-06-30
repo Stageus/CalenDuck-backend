@@ -66,6 +66,40 @@ router.get(
   }
 );
 
+router.post(
+  "/",
+  checkValidity,
+  checkDuplicatedId,
+  endRequestHandler(async (req, res, next) => {
+    const { id, pw, name, email } = req.body;
+
+    const psqlClient = await psql.connect();
+
+    try {
+      await psqlClient.query("BEGIN");
+      const insertLoginQueryResult = await psqlClient.query(
+        `INSERT INTO calenduck.login(id, pw) VALUES($1, $2) RETURNING idx`,
+        [id, pw]
+      );
+      const loginIdx = insertLoginQueryResult.rows[0].idx;
+
+      await psqlClient.query(
+        `INSERT INTO calenduck.user(login_idx, name, email) VALUES($1, $2, $3)`,
+        [loginIdx, name, email]
+      );
+
+      await psqlClient.query("COMMIT");
+
+      return res.sendStatus(201);
+    } catch (err) {
+      await psqlClient.query("ROLLBACK");
+      throw err;
+    } finally {
+      psqlClient.release();
+    }
+  })
+);
+
 router.delete("/", async (req, res, next) => {
   const loginUser = req.decoded;
 
