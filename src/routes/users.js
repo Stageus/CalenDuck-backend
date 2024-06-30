@@ -4,6 +4,7 @@ const {
   UnauthorizedError,
   ConflictError,
   ForbiddenError,
+  NotFoundError,
 } = require("../model/customError");
 const checkDuplicatedId = require("../middlewares/checkDuplicatedId");
 const checkAuth = require("../middlewares/checkAuth");
@@ -110,7 +111,7 @@ router.post(
   })
 );
 
-router.delete("/", async (req, res, next) => {
+router.delete("/", checkAuth, async (req, res, next) => {
   const loginUser = req.decoded;
 
   try {
@@ -127,7 +128,7 @@ router.delete("/", async (req, res, next) => {
   }
 });
 
-router.get("/interests", async (req, res, next) => {
+router.get("/interests", checkAuth, async (req, res, next) => {
   const loginUser = req.decoded;
 
   try {
@@ -148,6 +149,43 @@ router.get("/interests", async (req, res, next) => {
     return res.status(200).send({
       list: interestList,
     });
+  } catch (err) {
+    return next(err);
+  }
+});
+
+router.post("/interests/:idx", async (req, res, next) => {
+  const { idx: interestIdx } = req.params;
+  const loginUser = req.decoded;
+
+  try {
+    const isInterest = (
+      await psql.query(`SELECT idx FROM calenduck.interest WHERE idx=$1`, [
+        interestIdx,
+      ])
+    ).rows[0];
+
+    if (!isInterest) {
+      throw new NotFoundError("관심사 없음");
+    }
+
+    const isUserInterest = (
+      await psql.query(
+        `SELECT idx FROM calenduck.user_interest WHERE user_idx =$1 AND interest_idx=$2`,
+        [loginUser.idx, interestIdx]
+      )
+    ).rows[0];
+
+    if (isUserInterest) {
+      throw new ConflictError("데이터 중복");
+    }
+
+    await psql.query(
+      `INSERT INTO calenduck.user_interest(user_idx, interest_idx) VALUES($1, $2)`,
+      [loginUser.idx, interestIdx]
+    );
+
+    res.sendStatus(201);
   } catch (err) {
     return next(err);
   }
