@@ -73,6 +73,16 @@ router.post(
   endRequestHandler(async (req, res, next) => {
     const { id, pw, name, email } = req.body;
 
+    const isEmail = (
+      await psql.query(`SELECT email FROM calenduck.user WHERE email = $1`, [
+        email,
+      ])
+    ).rows[0].email;
+
+    if (isEmail) {
+      throw new ConflictError("이메일 중복");
+    }
+
     const psqlClient = await psql.connect();
 
     try {
