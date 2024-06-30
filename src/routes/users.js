@@ -127,4 +127,30 @@ router.delete("/", async (req, res, next) => {
   }
 });
 
+router.get("/interests", async (req, res, next) => {
+  const loginUser = req.decoded;
+
+  try {
+    const interestList = (
+      await psql.query(
+        `SELECT I.interest, I.idx FROM calenduck.user_interest UI 
+      JOIN calenduck.interest I 
+      ON UI.interest_idx = I.idx 
+      WHERE UI.user_idx = $1`,
+        [loginUser.idx]
+      )
+    ).rows;
+
+    if (!interestList) {
+      return res.sendStatus(204);
+    }
+
+    return res.status(200).send({
+      list: interestList,
+    });
+  } catch (err) {
+    return next(err);
+  }
+});
+
 module.exports = router;
