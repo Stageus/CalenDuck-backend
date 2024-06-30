@@ -170,4 +170,35 @@ router.post("/users/permission", async (req, res, next) => {
     }
 })
 
+router.post("/users/asks/:idx/reply", async (req, res, next) => {
+    const { contents } = req.body;
+    const askIdx = req.params;
+
+    if (!askIdx) {
+        return next(new BadRequestError("cannot find ask idx"));
+    }
+
+    try {
+        const askData = await psql.query(`
+            SELECT idx FROM calenduck.ask
+            WHERE idx = $1
+        `, [askIdx]);
+
+        if (askData.rows.length === 0) {
+            return next(new NotFoundError("cannot find info"));
+        }
+
+        await psql.query(`
+            UPDATE calenduck.ask
+            SET reply = $1
+            WHERE idx = $2
+        `, [contents, askIdx]);
+
+        return res.sendStatus(201);
+    } catch (err) {
+        console.log(err);
+        return next(new InternalServerError("Internal Server Error"));
+    }
+})
+
 module.exports = router;
