@@ -12,7 +12,6 @@ const checkAuth = require("../middlewares/checkAuth");
 const makeToken = require("../modules/makeToken");
 const router = require("express").Router();
 const jwt = require("jsonwebtoken");
-require("dotenv").config();
 
 /**
  *
