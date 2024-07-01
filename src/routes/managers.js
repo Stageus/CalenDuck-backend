@@ -2,14 +2,16 @@
 const router = require("express").Router();
 
 const psql = require("../../database/connect/postgre");
-const { BadRequestError, NotFoundError, InternalServerError } = require("../model/customError");
+
+const checkAuth = require("../middlewares/checkAuth");
+const checkValidity = require("../middlewares/checkValidity");
+
+
+const { BadRequestError, ForbiddenError, NotFoundError, InternalServerError } = require("../model/customError");
 
 // 관심사 스케줄 생성
 router.post("/schedules/interests", async (req, res) => {
     const { interest_idx, date_time, contents, priority } = req.body
-    const result = {
-        "data": null
-    }
 
     try {
         const insertInterestScheduleResultQuery = await psql.query(`
@@ -19,8 +21,6 @@ router.post("/schedules/interests", async (req, res) => {
             [interest_idx, date_time, contents, priority]
         );
 
-        result.data = insertInterestScheduleResultQuery.rows[0];
-
         return res.sendStatus(201);
     } catch (err) {
         console.error(err);
@@ -29,7 +29,7 @@ router.post("/schedules/interests", async (req, res) => {
 })
 
 // 관심사 스케줄 수정
-router.put("/schedules/interests/:interest_idx/:idx", async (req, res) => {
+router.put("/schedules/interests/:idx", async (req, res) => {
     const { interest_idx, idx } = req.params;
     const { date_time, contents, priority } = req.body;
     
@@ -64,7 +64,7 @@ router.put("/schedules/interests/:interest_idx/:idx", async (req, res) => {
 })
 
 // 관심사 스케줄 삭제
-router.put("/schedules/interests/:interest_idx/:idx", async (req, res) => {
+router.put("/schedules/interests/:idx", async (req, res) => {
     const { interest_idx, idx } = req.params;
 
     try {
