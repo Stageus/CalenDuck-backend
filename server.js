@@ -23,7 +23,7 @@ mongoose();
 
 app.use(limiter);
 
-// app.use("/auth", authApi);
+//app.use("/auth", authApi);
 // app.use("/managers", managersApi);
 // app.use("/master", masterApi);
 // app.use("/notifications", notificationsApi);
@@ -32,7 +32,6 @@ app.use(limiter);
 // app.use("/", utillsApi);
 
 // app.use(interceptor);
-app.use(checkDuplicatedId);
 app.use(notFoundApi);
 app.use(errorHandler);
 
