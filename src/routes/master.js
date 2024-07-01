@@ -21,7 +21,7 @@ router.get("/users", async (req, res, next) => {
         }
 
         return res.status(200).send({
-            data: userData.rows
+            list: userData.rows
         });
     } catch (err) {
         console.log(err);
@@ -41,7 +41,7 @@ router.get("/interest", async (req, res, next) => {
         }
 
         return res.status(200).send({
-            data: interestData.rows
+            list: interestData.rows
         });
     } catch (err) {
         console.log(err);
@@ -63,7 +63,7 @@ router.get("/users/interest-admin", async (req, res, next) => {
         }
 
         return res.status(200).send({
-            data: managerWithInterest
+            list: managerWithInterest
         });
     } catch (err) {
         console.log(err);
@@ -92,7 +92,7 @@ router.get("/asks", async (req, res, next) => {
         }
 
         return res.status(200).send({
-            data: askWithUser
+            list: askWithUser
         });
     } catch (err) {
         console.log(err);
@@ -192,6 +192,46 @@ router.post("/users/asks/:idx/reply", async (req, res, next) => {
             SET reply = $1
             WHERE idx = $2
         `, [contents, askIdx]);
+
+        return res.sendStatus(201);
+    } catch (err) {
+        console.log(err);
+        return next(err);
+    }
+})
+
+router.put("/users/interest/:idx", async (req, res, next) => {
+    const { interestName } = req.body;
+    const { interestIdx } = req.params;
+
+    if (!interestIdx) {
+        return next(new BadRequestError("cannot find idx"));
+    }
+
+    try {
+        let interestData = await psql.query(`
+            SELECT idx FROM  calenduck.interest
+            WHERE idx = $1    
+        `, [interestIdx]);
+
+        if (interestData.rows.length === 0) {
+            return next(new NotFoundError("cannot find info"));
+        }
+
+        interestData = await psql.query(`
+            SELECT interest FROM calenduck.interest
+            WHERE interest = $1    
+        `, [interestName]);
+
+        if (interestData.rows.length !== 0) {
+            return next(new ConflictError("duplicated info"));
+        }
+
+        await psql.query(`
+            UPDATE calenduck.interest
+            SET interest = $1
+            WHERE idx = $2
+        `, [interestName, interestIdx]);
 
         return res.sendStatus(201);
     } catch (err) {
