@@ -1,3 +1,5 @@
+const { BadRequestError } = require("../model/customError");
+
 const checkValidity = (req, res, next) => {
     const regexId = /^(?=.*[a-zA-Z])(?=.*\d)[a-zA-Z\d]{6,12}$/; // 영어 + 숫자, 각 최소 1개 이상, 6~12
     const regexPw = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?)[a-zA-Z\d!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]{8,16}$/; // 영어 + 숫자 + 특수문자, 각 최소 1개 이상, 8~16
@@ -7,16 +9,16 @@ const checkValidity = (req, res, next) => {
     const { userId, userPw, userEmail, userName } = req.body;
 
     if (userId && !regexId.test(userId)) {
-        return res.sendStatus(400);;
+        return next(new BadRequestError("id 정규식 위반"));
     }
     if (userPw && !regexPw.test(userPw)) {
-        return res.sendStatus(400);;
+        return next(new BadRequestError("pw 정규식 위반"));
     }
     if (userEmail && !regexEmail.test(userEmail)) {
-        return res.sendStatus(400);;
+        return next(new BadRequestError("email 정규식 위반"));
     }
     if (userName && !regexName.test(userName)) {
-        return res.sendStatus(400);;
+        return next(new BadRequestError("name 정규식 위반"));
     }
     return next();
 }

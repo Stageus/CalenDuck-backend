@@ -22,14 +22,14 @@ router.get("/", checkAuth, async (req, res, next) => {
 
     const notificationList = findNotificationQueryResult;
 
+    if (!notificationList.length) {
+      return res.sendStatus(204);
+    }
+
     await notificationSchema.updateMany(
       { user_idx: loginUser.idx, is_read: false },
       { is_read: true }
     );
-
-    if (!notificationList.length) {
-      return res.status(204).end();
-    }
 
     return res.status(200).send({
       list: notificationList,

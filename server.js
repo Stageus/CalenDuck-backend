@@ -13,7 +13,6 @@ const masterApi = require("./src/routes/master");
 const notificationsApi = require("./src/routes/notifications");
 const schedulesApi = require("./src/routes/schedules");
 const usersApi = require("./src/routes/users");
-const utillsApi = require("./src/routes/utills");
 
 require("dotenv").config();
 const app = express();
@@ -23,16 +22,15 @@ mongoose();
 
 app.use(limiter);
 
-// app.use("/auth", authApi);
+//app.use("/auth", authApi);
 // app.use("/managers", managersApi);
 // app.use("/master", masterApi);
 // app.use("/notifications", notificationsApi);
 // app.use("/schedules", schedulesApi);
-// app.use("/users", usersApi);
+app.use("/users", usersApi);
 // app.use("/", utillsApi);
 
 // app.use(interceptor);
-app.use(checkDuplicatedId);
 app.use(notFoundApi);
 app.use(errorHandler);
 
