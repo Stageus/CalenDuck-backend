@@ -5,6 +5,7 @@ const {
   ConflictError,
   ForbiddenError,
   NotFoundError,
+  BadRequestError,
 } = require("../model/customError");
 const checkDuplicatedId = require("../middlewares/checkDuplicatedId");
 const checkAuth = require("../middlewares/checkAuth");
@@ -155,10 +156,14 @@ router.get("/interests", checkAuth, async (req, res, next) => {
 });
 
 router.post("/interests/:idx", checkAuth, async (req, res, next) => {
-  const { idx: interestIdx } = req.params;
+  const { idx: interestIdx = null } = req.params;
   const loginUser = req.decoded;
 
   try {
+    if (!interestIdx || isNAN(interestIdx)) {
+      throw new BadRequestError("잘못된 요청 양식");
+    }
+
     const isInterest = (
       await psql.query(`SELECT idx FROM calenduck.interest WHERE idx=$1`, [
         interestIdx,
@@ -192,10 +197,14 @@ router.post("/interests/:idx", checkAuth, async (req, res, next) => {
 });
 
 router.delete("/interests/:idx", checkAuth, async (req, res, next) => {
-  const { idx: interestIdx } = req.params;
+  const { idx: interestIdx = null } = req.params;
   const loginUser = req.decoded;
 
   try {
+    if (!interestIdx || isNAN(interestIdx)) {
+      throw new BadRequestError("잘못된 요청 양식");
+    }
+
     const isInterest = (
       await psql.query(`SELECT idx FROM calenduck.interest WHERE idx=$1`, [
         interestIdx,
