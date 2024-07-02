@@ -1,14 +1,12 @@
 const router = require("express").Router();
 
 const {
-    BadRequestError,
-    ConflictError,
-    NotFoundError
-} = require("../model/customError");
+    BadRequestException,
+    ConflictException,
+    NotFoundException
+} = require("../model/customException");
 
 const psql = require("../../database/connect/postgre");
-const { MongoTransactionError } = require("mongodb");
-const { Connection } = require("pg");
 
 router.get("/users", async (req, res, next) => {
     try {
@@ -75,7 +73,7 @@ router.get("/asks", async (req, res, next) => {
     const { categoryIdx } = req.query;
 
     if (!categoryIdx) {
-        return next(new BadRequestError);
+        return next(new BadRequestException);
     }
 
     try {
@@ -104,7 +102,7 @@ router.post("/interests", async (req, res, next) => {
     const { interestName } = req.body;
 
     if (!interestName) {
-        return next(new BadRequestError);
+        return next(new BadRequestException);
     }
 
     try {
@@ -114,7 +112,7 @@ router.post("/interests", async (req, res, next) => {
         `, [interestName]);
 
         if (interestData.rows.length !== 0) {
-            return next(new ConflictError);
+            return next(new ConflictException);
         }
 
         await psql.query(`
@@ -133,7 +131,7 @@ router.post("/users/permission", async (req, res, next) => {
     const { userIdx, interestIdx } = req.body;
 
     if (!userIdx || !interestIdx) {
-        return next(new BadRequestError);
+        return next(new BadRequestException);
     }
 
     try {
@@ -145,7 +143,7 @@ router.post("/users/permission", async (req, res, next) => {
         `, [userIdx, interestIdx]);
 
         if (userWithInteres.rows.length === 0) {
-            return next(new NotFoundError);
+            return next(new NotFoundException);
         }
 
         const managerData = await psql.query(`
@@ -154,7 +152,7 @@ router.post("/users/permission", async (req, res, next) => {
         `, [userIdx]);
 
         if (managerData.rows.length !== 0) {
-            return next(new ConflictError);
+            return next(new ConflictException);
         }
 
         await psql.query(`
@@ -174,7 +172,7 @@ router.post("/users/asks/:idx/reply", async (req, res, next) => {
     const askIdx = req.params;
 
     if (!askIdx) {
-        return next(new BadRequestError);
+        return next(new BadRequestException);
     }
 
     try {
@@ -184,7 +182,7 @@ router.post("/users/asks/:idx/reply", async (req, res, next) => {
         `, [askIdx]);
 
         if (askData.rows.length === 0) {
-            return next(new NotFoundError);
+            return next(new NotFoundException);
         }
 
         await psql.query(`
@@ -205,7 +203,7 @@ router.put("/users/interest/:idx", async (req, res, next) => {
     const { interestIdx } = req.params;
 
     if (!interestIdx) {
-        return next(new BadRequestError);
+        return next(new BadRequestException);
     }
 
     try {
@@ -215,7 +213,7 @@ router.put("/users/interest/:idx", async (req, res, next) => {
         `, [interestIdx]);
 
         if (interestData.rows.length === 0) {
-            return next(new NotFoundError);
+            return next(new NotFoundException);
         }
 
         interestData = await psql.query(`
@@ -224,7 +222,7 @@ router.put("/users/interest/:idx", async (req, res, next) => {
         `, [interestName]);
 
         if (interestData.rows.length !== 0) {
-            return next(new ConflictError);
+            return next(new ConflictException);
         }
 
         await psql.query(`
@@ -245,7 +243,7 @@ router.put("/users/:idx/interest-admin", async (req, res, next) => {
     const { beforeManagerIdx } = req.params;
 
     if (!afterManagerIdx, !beforeInterestIdx, !afterInterestIdx, !beforeManagerIdx) {
-        return next(new BadRequestError);
+        return next(new BadRequestException);
     }
 
     try {
@@ -255,7 +253,7 @@ router.put("/users/:idx/interest-admin", async (req, res, next) => {
         `, [beforeInterestIdx, afterInterestIdx]);
 
         if (interestData.rows.length === 0) {
-            return next(new NotFoundError);
+            return next(new NotFoundException);
         }
 
         const managerData = await psql.query(`
@@ -264,7 +262,7 @@ router.put("/users/:idx/interest-admin", async (req, res, next) => {
         `, [beforeManagerIdx, afterManagerIdx]);
 
         if (managerData.rows.length === 0) {
-            return next(new NotFoundError);
+            return next(new NotFoundException);
         }
 
         if (beforeInterestIdx === afterInterestIdx) {
