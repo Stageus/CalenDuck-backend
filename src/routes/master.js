@@ -307,4 +307,36 @@ router.delete("/interest/:idx", async (req, res, next) => {
     }
 })
 
+router.delete("/users/:idx/permission", async (req, res, next) => {
+    const { managerIdx } = req.params;
+
+    if (!managerIdx) {
+        return next(new BadRequestException);
+    }
+
+    try {
+        const manager = await getOneResult(`
+            SELECT * FROM calenduck.manager
+            WHERE user_idx = $1
+        `, [managerIdx]);
+        const interestIdx = manager.user_idx;
+
+        await psql.query(`
+            BEGIN;
+            UPDATE calenduck.user
+            SET role = 'general'
+            WHERE idx = 1;
+            UPDATE calenduck.interest
+            SET is_assigned = false
+            WHERE idx = 1;
+            DELETE FROM calenduck.manager
+            WHERE user_idx = 1;
+            COMMIT;
+        `, [managerIdx, interestIdx, managerIdx]);
+    } catch (err) {
+        console.log(err);
+        return next(err);
+    }
+})
+
 module.exports = router;
