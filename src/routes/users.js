@@ -7,21 +7,7 @@ const makeToken = require("../modules/makeToken");
 const router = require("express").Router();
 const jwt = require("jsonwebtoken");
 const { BadRequestException } = require("../model/customException");
-
-/**
- *
- * @param {import("express").RequestHandler} requestHandler
- * @returns {import("express").RequestHandler}
- */
-const endRequestHandler = (requestHandler) => {
-  return async (req, res, next) => {
-    try {
-      await requestHandler(req, res, next);
-    } catch (err) {
-      next(err);
-    }
-  };
-};
+const endRequestHandler = require("../modules/endRequestHandler");
 
 router.post("/login", checkValidity, async (req, res, next) => {
   const { id, pw } = req.body;
