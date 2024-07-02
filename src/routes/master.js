@@ -287,4 +287,24 @@ router.put("/users/:idx/manager", async (req, res, next) => {
     }
 })
 
+router.delete("/interest/:idx", async (req, res, next) => {
+    const { interestIdx } = req.params;
+
+    if (!interestIdx) {
+        return next(new BadRequestException);
+    }
+
+    try {
+        await psql.query(`
+            DELETE FROM calenduck.interest
+            WHERE idx = $1
+        `, [interestIdx]);
+
+        res.sendStatus(201);
+    } catch (err) {
+        console.log(err);
+        return next(err);
+    }
+})
+
 module.exports = router;
