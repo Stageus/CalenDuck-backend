@@ -2,21 +2,7 @@ const checkValidity = require("../middlewares/checkValidity");
 const nodemailer = require("nodemailer");
 const router = require("express").Router();
 const crypto = require("crypto");
-
-/**
- *
- * @param {import("express").RequestHandler} requestHandler
- * @returns {import("express").RequestHandler}
- */
-const endRequestHandler = (requestHandler) => {
-  return async (req, res, next) => {
-    try {
-      await requestHandler(req, res, next);
-    } catch (err) {
-      next(err);
-    }
-  };
-};
+const endRequestHandler = require("../modules/endRequestHandler");
 
 router.post(
   "/email",
