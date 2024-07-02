@@ -1,17 +1,12 @@
 const checkValidity = require("../middlewares/checkValidity");
 const psql = require("../../database/connect/postgre");
-const {
-  UnauthorizedError,
-  ConflictError,
-  ForbiddenError,
-  NotFoundError,
-  BadRequestError,
-} = require("../model/customError");
+
 const checkDuplicatedId = require("../middlewares/checkDuplicatedId");
 const checkAuth = require("../middlewares/checkAuth");
 const makeToken = require("../modules/makeToken");
 const router = require("express").Router();
 const jwt = require("jsonwebtoken");
+const { BadRequestException } = require("../model/customException");
 
 /**
  *
@@ -73,16 +68,6 @@ router.post(
   checkDuplicatedId,
   endRequestHandler(async (req, res, next) => {
     const { id, pw, name, email } = req.body;
-
-    const isEmail = (
-      await psql.query(`SELECT email FROM calenduck.user WHERE email = $1`, [
-        email,
-      ])
-    ).rows[0].email;
-
-    if (isEmail) {
-      throw new ConflictError("이메일 중복");
-    }
 
     const psqlClient = await psql.connect();
 
@@ -160,28 +145,7 @@ router.post("/interests/:idx", checkAuth, async (req, res, next) => {
 
   try {
     if (!interestIdx || isNAN(interestIdx)) {
-      throw new BadRequestError("잘못된 요청 양식");
-    }
-
-    const isInterest = (
-      await psql.query(`SELECT idx FROM calenduck.interest WHERE idx=$1`, [
-        interestIdx,
-      ])
-    ).rows[0];
-
-    if (!isInterest) {
-      throw new NotFoundError("관심사 없음");
-    }
-
-    const isUserInterest = (
-      await psql.query(
-        `SELECT idx FROM calenduck.user_interest WHERE user_idx =$1 AND interest_idx=$2`,
-        [loginUser.idx, interestIdx]
-      )
-    ).rows[0];
-
-    if (isUserInterest) {
-      throw new ConflictError("데이터 중복");
+      throw new BadRequestException();
     }
 
     await psql.query(
@@ -201,17 +165,7 @@ router.delete("/interests/:idx", checkAuth, async (req, res, next) => {
 
   try {
     if (!interestIdx || isNAN(interestIdx)) {
-      throw new BadRequestError("잘못된 요청 양식");
-    }
-
-    const isInterest = (
-      await psql.query(`SELECT idx FROM calenduck.interest WHERE idx=$1`, [
-        interestIdx,
-      ])
-    ).rows[0];
-
-    if (!isInterest) {
-      throw new NotFoundError("관심사 없음");
+      throw new BadRequestException();
     }
 
     await psql.query(
