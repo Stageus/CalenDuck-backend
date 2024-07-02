@@ -2,7 +2,6 @@ const router = require("express").Router();
 
 const {
     BadRequestError,
-    InternalServerError,
     ConflictError,
     NotFoundError
 } = require("../model/customError");
@@ -22,11 +21,11 @@ router.get("/users", async (req, res, next) => {
         }
 
         return res.status(200).send({
-            data: userData.rows
+            list: userData.rows
         });
     } catch (err) {
         console.log(err);
-        return next(new InternalServerError("Internal Server Error"));
+        return next(err);
     }
 })
 
@@ -42,11 +41,11 @@ router.get("/interest", async (req, res, next) => {
         }
 
         return res.status(200).send({
-            data: interestData.rows
+            list: interestData.rows
         });
     } catch (err) {
         console.log(err);
-        return next(new InternalServerError("Internal Server Error"));
+        return next(err);
     }
 })
 
@@ -56,7 +55,7 @@ router.get("/users/interest-admin", async (req, res, next) => {
             SELECT CM.user_idx, CM.interest_idx, CI.idx, CI.interest
             FROM calenduck.manager CM
             JOIN calenduck.interest CI
-            ON CM.interest_idx = CI.idx
+            ON CM.interest_idx = CI.idx; 
         `);
 
         if (managerWithInterest.rows.length === 0) {
@@ -64,11 +63,11 @@ router.get("/users/interest-admin", async (req, res, next) => {
         }
 
         return res.status(200).send({
-            data: managerWithInterest
+            list: managerWithInterest
         });
     } catch (err) {
         console.log(err);
-        return next(new InternalServerError("Internal Server Error"));
+        return next(err);
     }
 })
 
@@ -76,7 +75,7 @@ router.get("/asks", async (req, res, next) => {
     const { categoryIdx } = req.query;
 
     if (!categoryIdx) {
-        return next(new BadRequestError("cannot find query"));
+        return next(new BadRequestError);
     }
 
     try {
@@ -85,7 +84,7 @@ router.get("/asks", async (req, res, next) => {
             FROM calenduck.ask CA
             JOIN calenduck.user CU
             ON CA.user_idx=CU.idx
-            WHERE CA.ask_category_idx = $1
+            WHERE CA.ask_category_idx = $1; 
         `, [categoryIdx]); //
 
         if (askWithUser.rows.length === 0) {
@@ -93,11 +92,11 @@ router.get("/asks", async (req, res, next) => {
         }
 
         return res.status(200).send({
-            data: askWithUser
+            list: askWithUser
         });
     } catch (err) {
         console.log(err);
-        return next(new InternalServerError("Internal Server Error"));
+        return next(err);
     }
 })
 
@@ -105,17 +104,17 @@ router.post("/interests", async (req, res, next) => {
     const { interestName } = req.body;
 
     if (!interestName) {
-        return next(new BadRequestError("cannot find interest name"));
+        return next(new BadRequestError);
     }
 
     try {
-        const interestData = await psql.query(`
+        const interestData = await psql.query(` 
             SELECT idx FROM calenduck.interest
             WHERE interest = $1    
         `, [interestName]);
 
         if (interestData.rows.length !== 0) {
-            return next(new ConflictError("duplicated interest name"));
+            return next(new ConflictError);
         }
 
         await psql.query(`
@@ -126,7 +125,7 @@ router.post("/interests", async (req, res, next) => {
         return res.sendStatus(201);
     } catch (err) {
         console.log(err);
-        return next(new InternalServerError("Internal Server Error"));
+        return next(err);
     }
 })
 
@@ -134,7 +133,7 @@ router.post("/users/permission", async (req, res, next) => {
     const { userIdx, interestIdx } = req.body;
 
     if (!userIdx || !interestIdx) {
-        return next(new BadRequestError("cannot find req body"));
+        return next(new BadRequestError);
     }
 
     try {
@@ -142,11 +141,11 @@ router.post("/users/permission", async (req, res, next) => {
             SELECT CU.idx, CI.idx
             FROM calenduck.user CU
             CROSS JOIN calenduck.interest CI
-            WHERE CU.idx = $1 AND CI.idx = $2 
+            WHERE CU.idx = $1 AND CI.idx = $2;    
         `, [userIdx, interestIdx]);
 
         if (userWithInteres.rows.length === 0) {
-            return next(new NotFoundError("cannot find info"));
+            return next(new NotFoundError);
         }
 
         const managerData = await psql.query(`
@@ -155,7 +154,7 @@ router.post("/users/permission", async (req, res, next) => {
         `, [userIdx]);
 
         if (managerData.rows.length !== 0) {
-            return next(new ConflictError("duplicated info"));
+            return next(new ConflictError);
         }
 
         await psql.query(`
@@ -166,16 +165,16 @@ router.post("/users/permission", async (req, res, next) => {
         return res.sendStatus(201);
     } catch (err) {
         console.log(err);
-        return next(new InternalServerError("Internal Server Error"));
+        return next(err);
     }
 })
 
-router.put("/users/asks/:idx/reply", async (req, res, next) => {
+router.post("/users/asks/:idx/reply", async (req, res, next) => {
     const { contents } = req.body;
     const askIdx = req.params;
 
     if (!askIdx) {
-        return next(new BadRequestError("cannot find ask idx"));
+        return next(new BadRequestError);
     }
 
     try {
@@ -185,7 +184,7 @@ router.put("/users/asks/:idx/reply", async (req, res, next) => {
         `, [askIdx]);
 
         if (askData.rows.length === 0) {
-            return next(new NotFoundError("cannot find info"));
+            return next(new NotFoundError);
         }
 
         await psql.query(`
@@ -197,7 +196,7 @@ router.put("/users/asks/:idx/reply", async (req, res, next) => {
         return res.sendStatus(201);
     } catch (err) {
         console.log(err);
-        return next(new InternalServerError("Internal Server Error"));
+        return next(err);
     }
 })
 
@@ -206,7 +205,7 @@ router.put("/users/interest/:idx", async (req, res, next) => {
     const { interestIdx } = req.params;
 
     if (!interestIdx) {
-        return next(new BadRequestError("cannot find idx"));
+        return next(new BadRequestError);
     }
 
     try {
@@ -216,7 +215,7 @@ router.put("/users/interest/:idx", async (req, res, next) => {
         `, [interestIdx]);
 
         if (interestData.rows.length === 0) {
-            return next(new NotFoundError("cannot find info"));
+            return next(new NotFoundError);
         }
 
         interestData = await psql.query(`
@@ -225,7 +224,7 @@ router.put("/users/interest/:idx", async (req, res, next) => {
         `, [interestName]);
 
         if (interestData.rows.length !== 0) {
-            return next(new ConflictError("duplicated info"));
+            return next(new ConflictError);
         }
 
         await psql.query(`
@@ -237,7 +236,63 @@ router.put("/users/interest/:idx", async (req, res, next) => {
         return res.sendStatus(201);
     } catch (err) {
         console.log(err);
-        return next(new InternalServerError("Internal Server Error"));
+        return next(err);
+    }
+})
+
+router.put("/users/:idx/interest-admin", async (req, res, next) => {
+    const { afterManagerIdx, beforeInterestIdx, afterInterestIdx } = req.body;
+    const { beforeManagerIdx } = req.params;
+
+    if (!afterManagerIdx, !beforeInterestIdx, !afterInterestIdx, !beforeManagerIdx) {
+        return next(new BadRequestError);
+    }
+
+    try {
+        const interestData = await psql.query(`
+            SELECT idx FROM calenduck.interest
+            WHERE idx IN($1, $2)
+        `, [beforeInterestIdx, afterInterestIdx]);
+
+        if (interestData.rows.length === 0) {
+            return next(new NotFoundError);
+        }
+
+        const managerData = await psql.query(`
+            SELECT user_idx FROM calenduck.manager
+            WHERE user_idx IN($1, $2)
+        `, [beforeManagerIdx, afterManagerIdx]);
+
+        if (managerData.rows.length === 0) {
+            return next(new NotFoundError);
+        }
+
+        if (beforeInterestIdx === afterInterestIdx) {
+            await psql.query(`
+                UPDATE calenduck.manager
+                SET user_idx = $1
+                WHERE user_idx = $2
+            `, [afterManagerIdx, beforeManagerIdx]);
+        } else {
+            await psql.query(`
+                BEGIN;
+                UPDATE calenduck.manager
+                SET user_idx = $1, interest_idx = $2
+                WHERE user_idx = $3;
+                UPDATE calenduck.interest
+                SET is_assigned = CASE
+                WHEN idx = $4 THEN false
+                WHEN idx = $5 THEN true
+                END
+                WHERE idx IN($6, $7);
+                COMMIT;
+            `, [afterManagerIdx, afterInterestIdx, beforeManagerIdx, beforeInterestIdx, afterInterestIdx, beforeInterestIdx, afterInterestIdx]);
+        }
+
+        return res.sendStatus(201);
+    } catch (err) {
+        console.log(err);
+        return next(err);
     }
 })
 
