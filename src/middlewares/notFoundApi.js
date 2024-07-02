@@ -1,7 +1,7 @@
-const { NotFoundError } = require("../model/customError");
+const { NotFoundException } = require("../model/customException");
 
 const notFoundApi = (req, res, next) => {
-  throw new NotFoundError("Api가 없습니다");
+  throw new NotFoundException();
 };
 
 module.exports = notFoundApi;
