@@ -12,18 +12,6 @@ const {
     getManyResults
 } = require("../modules/sqlHandler");
 
-router.get("/test", async (req, res) => {
-    try {
-        await psql.query("insert into calenduck.interest(interest) values('test8')");
-        res.sendStatus(200);
-    } catch (err) {
-        if (err.constraint === "interest_interest_key") {
-            console.log('aaa');
-        }
-        res.sendStatus(200);
-    }
-})
-
 router.get("/users", async (req, res, next) => {
     try {
         const users = await getManyResults(`
@@ -319,7 +307,7 @@ router.delete("/users/:idx/permission", async (req, res, next) => {
             SELECT * FROM calenduck.manager
             WHERE user_idx = $1
         `, [managerIdx]);
-        const interestIdx = manager.user_idx;
+        const interestIdx = manager.interest_idx;
 
         await psql.query(`
             BEGIN;
