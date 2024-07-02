@@ -1,25 +1,29 @@
 const router = require("express").Router();
 
+const psql = require("../../database/connect/postgre");
+
 const {
     BadRequestException,
     ConflictException,
     NotFoundException
 } = require("../model/customException");
-
-const psql = require("../../database/connect/postgre");
+const {
+    getOneResult,
+    getManyResults
+} = require("../modules/sqlHandler");
 
 router.get("/users", async (req, res, next) => {
     try {
-        const userData = await psql.query(`
+        const users = await getManyResults(`
             SELECT idx, name FROM calenduck.user
         `);
 
-        if (userData.rows.length === 0) {
+        if (users.length === 0) {
             return res.sendStatus(204);
         }
 
         return res.status(200).send({
-            list: userData.rows
+            list: users
         });
     } catch (err) {
         console.log(err);
@@ -29,17 +33,17 @@ router.get("/users", async (req, res, next) => {
 
 router.get("/interest", async (req, res, next) => {
     try {
-        const interestData = await psql.query(`
+        const interests = await getManyResults(`
             SELECT idx, interest FROM calenduck.interest
             WHERE is_assigned=false
         `)
 
-        if (interestData.rows.length === 0) {
+        if (interests.length === 0) {
             return res.sendStatus(204);
         }
 
         return res.status(200).send({
-            list: interestData.rows
+            list: interests
         });
     } catch (err) {
         console.log(err);
@@ -47,7 +51,7 @@ router.get("/interest", async (req, res, next) => {
     }
 })
 
-router.get("/users/interest-admin", async (req, res, next) => {
+router.get("/users/manager", async (req, res, next) => {
     try {
         const managerWithInterest = await psql.query(`
             SELECT CM.user_idx, CM.interest_idx, CI.idx, CI.interest
@@ -238,7 +242,7 @@ router.put("/users/interest/:idx", async (req, res, next) => {
     }
 })
 
-router.put("/users/:idx/interest-admin", async (req, res, next) => {
+router.put("/users/:idx/manager", async (req, res, next) => {
     const { afterManagerIdx, beforeInterestIdx, afterInterestIdx } = req.body;
     const { beforeManagerIdx } = req.params;
 
