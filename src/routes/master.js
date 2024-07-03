@@ -51,7 +51,7 @@ router.get("/interest", async (req, res, next) => {
     }
 })
 
-router.get("/users/manager", async (req, res, next) => {
+router.get("/manager", async (req, res, next) => {
     try {
         const managers = await getManyResults(`
             SELECT CM.user_idx, CM.interest_idx, CI.idx, CI.interest
@@ -217,7 +217,7 @@ router.put("/interest/:idx", async (req, res, next) => {
     }
 })
 
-router.put("/users/:idx/manager", async (req, res, next) => {
+router.put("/managers/:idx/permission", async (req, res, next) => {
     const { afterManagerIdx, beforeInterestIdx, afterInterestIdx } = req.body;
     const { beforeManagerIdx } = req.params;
 
@@ -295,7 +295,7 @@ router.delete("/interest/:idx", async (req, res, next) => {
     }
 })
 
-router.delete("/users/:idx/permission", async (req, res, next) => {
+router.delete("/managers/:idx/permission", async (req, res, next) => {
     const { managerIdx } = req.params;
 
     if (!managerIdx) {
