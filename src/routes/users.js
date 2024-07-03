@@ -132,6 +132,31 @@ router.post(
   })
 );
 
+//비밀번호 재설정
+router.put("/pw", async (req, res, next) => {
+  const { pw } = req.body;
+  const token = req.cookies.email_token || null;
+  
+  if(!token){
+    return next(new UnauthorizedException());
+  }
+
+  try {
+    const user = jwt.verify(token, process.env.EMAIL_TOKEN_SECRET_KEY);
+    
+    await psql.query(
+      `UPDATE calenduck.login CL SET pw=$1 
+      FROM calenduck.user CU 
+      WHERE CL.idx = CU.login_idx AND CU.email =$2`,
+      [pw, user.email]
+    );
+
+    return res.sendStatus(201);
+  } catch (err) {
+    return next(err);
+  }
+});
+
 // router.get(
 //   "/check-id",
 //   checkValidity,
