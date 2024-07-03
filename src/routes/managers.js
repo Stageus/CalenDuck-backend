@@ -2,7 +2,7 @@
 const router = require("express").Router();
 
 const psql = require("../../database/connect/postgre");
-const { BadRequestError, NotFoundError, InternalServerError } = require("../model/customError");
+const { NotFoundException } = require("../model/customException");
 
 // 관심사 스케줄 생성
 router.post("/schedules/interests", async (req, res) => {
@@ -19,12 +19,9 @@ router.post("/schedules/interests", async (req, res) => {
             [interest_idx, date_time, contents, priority]
         );
 
-        result.data = insertInterestScheduleResultQuery.rows[0];
-
         return res.sendStatus(201);
     } catch (err) {
         console.error(err);
-        throw new InternalServerError("Internet Server Error");
     } 
 })
 
@@ -43,7 +40,7 @@ router.put("/schedules/interests/:interest_idx/:idx", async (req, res) => {
         );
 
         if (selectInterestScheduleResultQuery.rows.length === 0) {
-            throw new NotFoundError("Not Found");
+            return next(new NotFoundException());
         }
 
         // 스케줄 수정
@@ -59,7 +56,6 @@ router.put("/schedules/interests/:interest_idx/:idx", async (req, res) => {
         return res.sendStatus(201);
     } catch (err) {
         console.error(err);
-        throw new InternalServerError("Internal Server Error");
     } 
 })
 
@@ -77,7 +73,7 @@ router.put("/schedules/interests/:interest_idx/:idx", async (req, res) => {
         );
 
         if (selectInterestScheduleResultQuery.rows.length === 0) {
-            throw new NotFoundError("Not Found");
+            return next(new NotFoundException());
         }
 
         // 스케줄 삭제
@@ -92,7 +88,6 @@ router.put("/schedules/interests/:interest_idx/:idx", async (req, res) => {
         return res.sendStatus(201);
     } catch (err) {
         console.error(err);
-        throw new InternalServerError("Internal Server Error");
     } 
 })
 

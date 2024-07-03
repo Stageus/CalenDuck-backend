@@ -1,4 +1,5 @@
-const { BadRequestError } = require("../model/customError");
+const { BadRequestException } = require("../model/customException");
+
 
 const checkValidity = (req, res, next) => {
     const regexId = /^(?=.*[a-zA-Z])(?=.*\d)[a-zA-Z\d]{6,12}$/; // 영어 + 숫자, 각 최소 1개 이상, 6~12
@@ -9,16 +10,19 @@ const checkValidity = (req, res, next) => {
     const { userId, userPw, userEmail, userName } = req.body;
 
     if (userId && !regexId.test(userId)) {
-        return next(new BadRequestError("id 정규식 위반"));
+        return next(new BadRequestException());
+
     }
     if (userPw && !regexPw.test(userPw)) {
-        return next(new BadRequestError("pw 정규식 위반"));
+        return next(new BadRequestException());
+
     }
     if (userEmail && !regexEmail.test(userEmail)) {
-        return next(new BadRequestError("email 정규식 위반"));
+        return next(new BadRequestException());
+
     }
     if (userName && !regexName.test(userName)) {
-        return next(new BadRequestError("name 정규식 위반"));
+        return next(new BadRequestException());
     }
     return next();
 }

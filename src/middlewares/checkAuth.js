@@ -1,8 +1,5 @@
 const jwt = require("jsonwebtoken");
-const {
-    ForbiddenError,
-    UnauthorizedError
-} = require("../model/customError")
+const { ForbiddenException, UnauthorizedException } = require("../model/customException");
 
 const checkAuth = (type = null) => {
     return (req, res, next) => {
@@ -13,11 +10,11 @@ const checkAuth = (type = null) => {
             req.decoded = jwtData;
 
             if (type === "admin" && jwtData.admin !== true) {
-                return next(new ForbiddenError("관리자만이 접근할 수 있습니다."));
+                return next(new ForbiddenException());
             }
             return next();
         } catch (err) {
-            return next(new UnauthorizedError("인증되지 않은 접근입니다."));
+            return next(new UnauthorizedException());
         }
     }
 }
