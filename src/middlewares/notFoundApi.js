@@ -1,7 +1,7 @@
 const { NotFoundException } = require("../model/customException");
 
 const notFoundApi = (req, res, next) => {
-  throw new NotFoundException();
+  return next(new NotFoundException());
 };
 
 module.exports = notFoundApi;
