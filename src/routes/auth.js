@@ -1,4 +1,4 @@
-const checkValidity = require("../middlewares/checkValidity");
+// const checkValidity = require("../middlewares/checkValidity");
 const nodemailer = require("nodemailer");
 const router = require("express").Router();
 const crypto = require("crypto");
@@ -6,7 +6,6 @@ const endRequestHandler = require("../modules/endRequestHandler");
 
 router.post(
   "/email",
-  checkValidity,
   endRequestHandler(async (req, res, next) => {
     const { email } = req.body;
     const min = 100000;
@@ -30,7 +29,7 @@ router.post(
 
       const vericicationCode = (array[0] % range) + min;
 
-      redis.sadd(email, vericicationCode);
+      redis.set(email, vericicationCode);
       redis.expire(email, 3 * 60);
 
       await transporter.sendMail({
