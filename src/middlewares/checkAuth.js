@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken");
-const { ForbiddenError } = require("../model/customError")
+const { ForbiddenException } = require("../model/customException");
+
 
 const checkAuth = (type = null) => {
     return (req, res, next) => {
@@ -13,7 +14,8 @@ const checkAuth = (type = null) => {
             req.decoded = jwtData;
 
             if (type === "admin" && jwtData.admin !== true) {
-                throw new ForbiddenError("관리자만이 접근할 수 있습니다.");
+                return next(new ForbiddenException());
+
             }
             return next();
         } catch (err) {
