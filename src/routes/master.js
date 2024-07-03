@@ -217,32 +217,33 @@ router.put("/interest/:idx", async (req, res, next) => {
     }
 })
 
-router.put("/managers/:idx/permission", async (req, res, next) => {
-    const { afterManagerIdx, beforeInterestIdx, afterInterestIdx } = req.body;
-    const { beforeManagerIdx } = req.params;
+router.put("/managers/assignment", async (req, res, next) => {
+    const { beforeManagerIdx, afterManagerIdx, afterInterestIdx } = req.body;
 
-    if (!afterManagerIdx || !beforeInterestIdx || !afterInterestIdx || !beforeManagerIdx) {
+    if (!afterManagerIdx || !afterInterestIdx || !beforeManagerIdx) {
         return next(new BadRequestException);
     }
 
     try {
-        const interests = await getManyResults(`
+        const interest = await getOneResult(`
             SELECT idx FROM calenduck.interest
-            WHERE idx IN($1, $2)
-        `, [beforeInterestIdx, afterInterestIdx]);
+            WHERE idx = $1
+        `, [afterInterestIdx]);
 
-        if (interests.length !== 2) {
+        if (interest.length === 0) {
             return next(new NotFoundException);
         }
 
         const managers = await getManyResults(`
-            SELECT user_idx FROM calenduck.manager
-            WHERE user_idx IN($1, $2)
+            SELECT interest_idx FROM calenduck.manager
+            WHERE interest_idx IN($1, $2)
         `, [beforeManagerIdx, afterManagerIdx]);
 
         if (managers.length === 0) {
             return next(new NotFoundException);
         }
+
+        const beforeInterestIdx = managers[0].interest_idx;
 
         if (beforeInterestIdx === afterInterestIdx) {
             await psql.query(`
