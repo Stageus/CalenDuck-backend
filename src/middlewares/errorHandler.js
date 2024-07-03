@@ -1,8 +1,8 @@
-const { CustomError } = require("../model/customError");
+const { customException } = require("../model/customException");
 
 const errorHandler = async (err, req, res, next) => {
-  if (err instanceof CustomError) {
-    return res.status(err.statusCode).send({
+  if (err instanceof customException) {
+    return res.status(err.status).send({
       message: err.message,
     });
   } else {

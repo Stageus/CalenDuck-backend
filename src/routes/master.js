@@ -1,27 +1,29 @@
 const router = require("express").Router();
 
-const {
-    BadRequestError,
-    ConflictError,
-    NotFoundError
-} = require("../model/customError");
-
 const psql = require("../../database/connect/postgre");
-const { MongoTransactionError } = require("mongodb");
-const { Connection } = require("pg");
+
+const {
+    BadRequestException,
+    ConflictException,
+    NotFoundException
+} = require("../model/customException");
+const {
+    getOneResult,
+    getManyResults
+} = require("../modules/sqlHandler");
 
 router.get("/users", async (req, res, next) => {
     try {
-        const userData = await psql.query(`
+        const users = await getManyResults(`
             SELECT idx, name FROM calenduck.user
         `);
 
-        if (userData.rows.length === 0) {
+        if (users.length === 0) {
             return res.sendStatus(204);
         }
 
         return res.status(200).send({
-            list: userData.rows
+            list: users
         });
     } catch (err) {
         console.log(err);
@@ -31,17 +33,17 @@ router.get("/users", async (req, res, next) => {
 
 router.get("/interest", async (req, res, next) => {
     try {
-        const interestData = await psql.query(`
+        const interests = await getManyResults(`
             SELECT idx, interest FROM calenduck.interest
             WHERE is_assigned=false
         `)
 
-        if (interestData.rows.length === 0) {
+        if (interests.length === 0) {
             return res.sendStatus(204);
         }
 
         return res.status(200).send({
-            list: interestData.rows
+            list: interests
         });
     } catch (err) {
         console.log(err);
@@ -49,21 +51,21 @@ router.get("/interest", async (req, res, next) => {
     }
 })
 
-router.get("/users/interest-admin", async (req, res, next) => {
+router.get("/manager", async (req, res, next) => {
     try {
-        const managerWithInterest = await psql.query(`
+        const managers = await getManyResults(`
             SELECT CM.user_idx, CM.interest_idx, CI.idx, CI.interest
             FROM calenduck.manager CM
             JOIN calenduck.interest CI
             ON CM.interest_idx = CI.idx; 
         `);
 
-        if (managerWithInterest.rows.length === 0) {
+        if (managers.length === 0) {
             return res.sendStatus(204);
         }
 
         return res.status(200).send({
-            list: managerWithInterest
+            list: managers
         });
     } catch (err) {
         console.log(err);
@@ -75,24 +77,24 @@ router.get("/asks", async (req, res, next) => {
     const { categoryIdx } = req.query;
 
     if (!categoryIdx) {
-        return next(new BadRequestError);
+        return next(new BadRequestException);
     }
 
     try {
-        const askWithUser = await psql.query(`
-            SELECT CA.idx, CA.title, CA.contents, CA.reply, CA.created_at, CU.name
+        const asks = await getManyResults(`
+            SELECT CA.idx, CA.title, CA.contents, CA.reply, CA.created_at, CU.nickname
             FROM calenduck.ask CA
             JOIN calenduck.user CU
             ON CA.user_idx=CU.idx
             WHERE CA.ask_category_idx = $1; 
-        `, [categoryIdx]); //
+        `, [categoryIdx]);
 
-        if (askWithUser.rows.length === 0) {
+        if (asks.length === 0) {
             return res.sendStatus(204);
         }
 
         return res.status(200).send({
-            list: askWithUser
+            list: asks
         });
     } catch (err) {
         console.log(err);
@@ -103,28 +105,17 @@ router.get("/asks", async (req, res, next) => {
 router.post("/interests", async (req, res, next) => {
     const { interestName } = req.body;
 
-    if (!interestName) {
-        return next(new BadRequestError);
-    }
-
     try {
-        const interestData = await psql.query(` 
-            SELECT idx FROM calenduck.interest
-            WHERE interest = $1    
-        `, [interestName]);
-
-        if (interestData.rows.length !== 0) {
-            return next(new ConflictError);
-        }
-
         await psql.query(`
             INSERT INTO calenduck.interest(interest)
             VALUES($1)
-        `, [interestData]);
+        `, [interestName]);
 
         return res.sendStatus(201);
     } catch (err) {
-        console.log(err);
+        if (err.constraint === "interest_interest_key") {
+            return next(new ConflictException);
+        }
         return next(err);
     }
 })
@@ -133,28 +124,19 @@ router.post("/users/permission", async (req, res, next) => {
     const { userIdx, interestIdx } = req.body;
 
     if (!userIdx || !interestIdx) {
-        return next(new BadRequestError);
+        return next(new BadRequestException);
     }
 
     try {
-        const userWithInteres = await psql.query(`
+        const userAndInterest = await getOneResult(`
             SELECT CU.idx, CI.idx
             FROM calenduck.user CU
             CROSS JOIN calenduck.interest CI
             WHERE CU.idx = $1 AND CI.idx = $2;    
         `, [userIdx, interestIdx]);
 
-        if (userWithInteres.rows.length === 0) {
-            return next(new NotFoundError);
-        }
-
-        const managerData = await psql.query(`
-            SELECT user_idx FROM calenduck.manager
-            WHERE user_idx = $1    
-        `, [userIdx]);
-
-        if (managerData.rows.length !== 0) {
-            return next(new ConflictError);
+        if (userAndInterest.length === 0) {
+            return next(new NotFoundException);
         }
 
         await psql.query(`
@@ -164,7 +146,9 @@ router.post("/users/permission", async (req, res, next) => {
 
         return res.sendStatus(201);
     } catch (err) {
-        console.log(err);
+        if (err.constraint === "manager_user_idx_key" || err.constraint === "manager_interest_idx_key") {
+            return next(new ConflictException);
+        }
         return next(err);
     }
 })
@@ -174,17 +158,17 @@ router.post("/users/asks/:idx/reply", async (req, res, next) => {
     const askIdx = req.params;
 
     if (!askIdx) {
-        return next(new BadRequestError);
+        return next(new BadRequestException);
     }
 
     try {
-        const askData = await psql.query(`
+        const ask = await getOneResult(`
             SELECT idx FROM calenduck.ask
             WHERE idx = $1
         `, [askIdx]);
 
-        if (askData.rows.length === 0) {
-            return next(new NotFoundError);
+        if (ask.length === 0) {
+            return next(new NotFoundException);
         }
 
         await psql.query(`
@@ -200,31 +184,22 @@ router.post("/users/asks/:idx/reply", async (req, res, next) => {
     }
 })
 
-router.put("/users/interest/:idx", async (req, res, next) => {
+router.put("/interest/:idx", async (req, res, next) => {
     const { interestName } = req.body;
     const { interestIdx } = req.params;
 
     if (!interestIdx) {
-        return next(new BadRequestError);
+        return next(new BadRequestException);
     }
 
     try {
-        let interestData = await psql.query(`
-            SELECT idx FROM  calenduck.interest
-            WHERE idx = $1    
+        const interest = await getOneResult(`
+            SELECT idx FROM calenduck.interest
+            WHERE idx = $1
         `, [interestIdx]);
 
-        if (interestData.rows.length === 0) {
-            return next(new NotFoundError);
-        }
-
-        interestData = await psql.query(`
-            SELECT interest FROM calenduck.interest
-            WHERE interest = $1    
-        `, [interestName]);
-
-        if (interestData.rows.length !== 0) {
-            return next(new ConflictError);
+        if (interest.length === 0) {
+            return next(new NotFoundException);
         }
 
         await psql.query(`
@@ -235,36 +210,38 @@ router.put("/users/interest/:idx", async (req, res, next) => {
 
         return res.sendStatus(201);
     } catch (err) {
-        console.log(err);
+        if (err.constraint === "interest_interest_key") {
+            return next(new ConflictException);
+        }
         return next(err);
     }
 })
 
-router.put("/users/:idx/interest-admin", async (req, res, next) => {
+router.put("/managers/:idx/permission", async (req, res, next) => {
     const { afterManagerIdx, beforeInterestIdx, afterInterestIdx } = req.body;
     const { beforeManagerIdx } = req.params;
 
-    if (!afterManagerIdx, !beforeInterestIdx, !afterInterestIdx, !beforeManagerIdx) {
-        return next(new BadRequestError);
+    if (!afterManagerIdx || !beforeInterestIdx || !afterInterestIdx || !beforeManagerIdx) {
+        return next(new BadRequestException);
     }
 
     try {
-        const interestData = await psql.query(`
+        const interests = await getManyResults(`
             SELECT idx FROM calenduck.interest
             WHERE idx IN($1, $2)
         `, [beforeInterestIdx, afterInterestIdx]);
 
-        if (interestData.rows.length === 0) {
-            return next(new NotFoundError);
+        if (interests.length !== 2) {
+            return next(new NotFoundException);
         }
 
-        const managerData = await psql.query(`
+        const managers = await getManyResults(`
             SELECT user_idx FROM calenduck.manager
             WHERE user_idx IN($1, $2)
         `, [beforeManagerIdx, afterManagerIdx]);
 
-        if (managerData.rows.length === 0) {
-            return next(new NotFoundError);
+        if (managers.length === 0) {
+            return next(new NotFoundException);
         }
 
         if (beforeInterestIdx === afterInterestIdx) {
@@ -290,6 +267,60 @@ router.put("/users/:idx/interest-admin", async (req, res, next) => {
         }
 
         return res.sendStatus(201);
+    } catch (err) {
+        if (err.constraint === "manager_user_idx_key" || err.constraint === "manager_interest_idx_key") {
+            return next(new ConflictException);
+        }
+        return next(err);
+    }
+})
+
+router.delete("/interest/:idx", async (req, res, next) => {
+    const { interestIdx } = req.params;
+
+    if (!interestIdx) {
+        return next(new BadRequestException);
+    }
+
+    try {
+        await psql.query(`
+            DELETE FROM calenduck.interest
+            WHERE idx = $1
+        `, [interestIdx]);
+
+        res.sendStatus(201);
+    } catch (err) {
+        console.log(err);
+        return next(err);
+    }
+})
+
+router.delete("/managers/:idx/permission", async (req, res, next) => {
+    const { managerIdx } = req.params;
+
+    if (!managerIdx) {
+        return next(new BadRequestException);
+    }
+
+    try {
+        const manager = await getOneResult(`
+            SELECT * FROM calenduck.manager
+            WHERE user_idx = $1
+        `, [managerIdx]);
+        const interestIdx = manager.interest_idx;
+
+        await psql.query(`
+            BEGIN;
+            UPDATE calenduck.user
+            SET role = 'general'
+            WHERE idx = 1;
+            UPDATE calenduck.interest
+            SET is_assigned = false
+            WHERE idx = 1;
+            DELETE FROM calenduck.manager
+            WHERE user_idx = 1;
+            COMMIT;
+        `, [managerIdx, interestIdx, managerIdx]);
     } catch (err) {
         console.log(err);
         return next(err);
