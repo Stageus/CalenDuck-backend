@@ -43,6 +43,8 @@ const { getOneResult, getManyResults } = require("../modules/sqlHandler");
 //   }
 // });
 
+
+//아이디 찾기
 router.post(
   "/id/find",
   endRequestHandler(async (req, res, next) => {
@@ -51,11 +53,11 @@ router.post(
     await redis.connect();
 
     try {
-      let emailVerificationCode = await redis.get(email);
+      let verifiCode = await redis.get(email);
 
       if (
-        !emailVerificationCode ||
-        emailVerificationCode !== verificationCode
+        !verifiCode ||
+        verifiCode !== verificationCode
       ) {
         return next(new UnauthorizedException());
       }
@@ -74,6 +76,54 @@ router.post(
       return res.status(200).send({
         id: user.id,
       });
+    } catch (err) {
+      throw err;
+    } finally {
+      await redis.disconnect();
+    }
+  })
+);
+
+//비밀번호 찾기
+router.post(
+  "/pw/find",
+  endRequestHandler(async (req, res, next) => {
+    const { name, id, email, verification_code: verificationCode } = req.body;
+
+    const redis = require("redis").createClient();
+    await redis.connect();
+
+    try {
+      let verifiCode = await redis.get(email);
+
+      if (
+        !verifiCode ||
+        verifiCode !== verificationCode
+      ) {
+        return next(new UnauthorizedException());
+      }
+
+
+      const user = await getOneResult(`
+        SELECT CU.email
+        FROM calenduck.login CL 
+        JOIN calenduck.user CU 
+        ON CU.login_idx = CL.idx 
+        WHERE CU.name =$1 AND CU.email=$2 AND CL.id = $3
+        `, [name, email, id])
+
+      if (!user) return next(new UnauthorizedException());
+
+      const emailToken = makeToken(
+        {
+          email: user.email,
+        },
+        "email"
+      );
+
+      res.cookie("email_token", emailToken);
+
+      return res.sendStatus(201);
     } catch (err) {
       throw err;
     } finally {
