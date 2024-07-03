@@ -1,17 +1,17 @@
 const express = require("express");
 const mongoose = require("./database/connect/mongodb");
-
+const cookieParser = require("cookie-parser");
 const errorHandler = require("./src/middlewares/errorHandler");
-const interceptor = require("./src/middlewares/interceptor");
+// const interceptor = require("./src/middlewares/interceptor");
 const notFoundApi = require("./src/middlewares/notFoundApi");
 const limiter = require("./src/middlewares/apiLimiter");
-const checkDuplicatedId = require("./src/middlewares/checkDuplicatedId");
+// const checkDuplicatedId = require("./src/middlewares/checkDuplicatedId");
 
 const authApi = require("./src/routes/auth");
-const managersApi = require("./src/routes/managers");
-const masterApi = require("./src/routes/master");
-const notificationsApi = require("./src/routes/notifications");
-const schedulesApi = require("./src/routes/schedules");
+// const managersApi = require("./src/routes/managers");
+// const masterApi = require("./src/routes/master");
+// const notificationsApi = require("./src/routes/notifications");
+// const schedulesApi = require("./src/routes/schedules");
 const usersApi = require("./src/routes/users");
 
 require("dotenv").config();
@@ -19,10 +19,10 @@ const app = express();
 const port = process.env.HTTP_PORT;
 app.use(express.json());
 mongoose();
-
+app.use(cookieParser());
 app.use(limiter);
 
-//app.use("/auth", authApi);
+app.use("/auth", authApi);
 // app.use("/managers", managersApi);
 // app.use("/master", masterApi);
 // app.use("/notifications", notificationsApi);
