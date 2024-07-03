@@ -7,6 +7,7 @@ const {
     ConflictException,
     NotFoundException
 } = require("../model/customException");
+
 const {
     getOneResult,
     getManyResults
@@ -132,7 +133,7 @@ router.post("/users/permission", async (req, res, next) => {
             SELECT CU.idx, CI.idx
             FROM calenduck.user CU
             CROSS JOIN calenduck.interest CI
-            WHERE CU.idx = $1 AND CI.idx = $2;    
+            WHERE CU.idx = $1 AND CI.idx = $2
         `, [userIdx, interestIdx]);
 
         if (userAndInterest.length === 0) {
@@ -322,6 +323,8 @@ router.delete("/managers/:idx/permission", async (req, res, next) => {
             WHERE user_idx = 1;
             COMMIT;
         `, [managerIdx, interestIdx, managerIdx]);
+
+        return res.sendStatus(201);
     } catch (err) {
         console.log(err);
         return next(err);
