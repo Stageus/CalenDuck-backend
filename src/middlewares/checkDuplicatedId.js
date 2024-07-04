@@ -1,20 +1,31 @@
 // 아이디 중복 확인 middleware
-const { ConflictException } = require("../model/customException");
-
 const psql = require("../../database/connect/postgre");
+
+const { 
+    ConflictException 
+} = require("../model/customException");
+
+const { 
+    getOneResult 
+} = require("../modules/sqlHandler");
 
 const checkDuplicatedId = async (req, res, next) => {
     const { id } = req.body;
-    try {
-        const selectLoginQueryResult = await psql.query('SELECT 1 FROM calenduck.login WHERE id = $1', [id]);
 
-        if (selectLoginQueryResult.rowCount > 0) {
+    try {
+        const login = await getOneResult(`
+            SELECT id
+            FROM calenduck.login
+            WHERE id = $1
+        `, [id]);
+
+        if (login) {
             return next(new ConflictException());
         }
 
-        next();
+        return next();
     } catch (err) {
-        console.log(err)
+        return next(err);
     }
 };
 
