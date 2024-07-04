@@ -14,6 +14,7 @@ const { getOneResult, getManyResults } = require("../modules/sqlHandler");
 const {
   BadRequestException,
   UnauthorizedException,
+  NotFoundException,
 } = require("../model/customException");
 
 //로그인
@@ -28,6 +29,8 @@ router.post("/login", checkValidity, async (req, res, next) => {
       ON CL.idx = CU.login_idx
       WHERE CL.id = $1 AND CL.pw = $2
     `, [id, pw]);
+
+    if(!loginUser) return next(new UnauthorizedException());
 
     const accessToken = makeToken(
       {
@@ -47,19 +50,17 @@ router.post("/login", checkValidity, async (req, res, next) => {
 
 
 //아이디 찾기
-router.post("/id/find", checkValidity, checkAuth(), async (req, res, next) => {
-    const { name, email } = req.body;
+router.post("/id/find", checkAuth("findId"), async (req, res, next) => {
+    const email = req.decoded.email;
 
     try {
-      //이메일 토큰
-
       const user = await getOneResult(`
         SELECT CL.id  
         FROM calenduck.login CL 
         JOIN calenduck.user CU 
         ON CU.login_idx = CL.idx 
-        WHERE CU.name =$1 AND CU.email=$2
-      `, [name, email]);
+        WHERE CU.email = $1
+      `, [email]);
 
       if (!user) return next(new UnauthorizedException());
 
@@ -73,8 +74,9 @@ router.post("/id/find", checkValidity, checkAuth(), async (req, res, next) => {
 );
 
 //비밀번호 찾기
-router.post("/pw/find", checkValidity, checkAuth(), async (req, res, next) => {
-    const { name, id, email } = req.body;
+router.post("/pw/find", checkValidity, checkAuth("findPw"), async (req, res, next) => {
+    const { name, id } = req.body;
+    const email = req.decoded.email;
 
     try {
 
@@ -91,6 +93,7 @@ router.post("/pw/find", checkValidity, checkAuth(), async (req, res, next) => {
       const emailToken = makeToken(
         {
           email: user.email,
+          type: "resetPw",
         }
       );
 
@@ -104,15 +107,11 @@ router.post("/pw/find", checkValidity, checkAuth(), async (req, res, next) => {
 );
 
 //비밀번호 재설정
-router.put("/pw", checkValidity, async (req, res, next) => {
+router.put("/pw", checkValidity, checkAuth("resetPw"), async (req, res, next) => {
   const { pw } = req.body;
-  const token = req.cookies.email_token || null;
-  
-  if(!token) return next(new UnauthorizedException());
+  const user = req.decoded;
 
   try {
-    const user = jwt.verify(token, process.env.EMAIL_TOKEN_SECRET_KEY);
-    
     await psql.query(`
       UPDATE calenduck.login CL SET pw = $1 
       FROM calenduck.user CU 
@@ -132,8 +131,9 @@ router.get("/check-id", checkValidity, checkDuplicatedId, async (req, res, next)
 );
 
 //회원가입
-router.post("/", checkValidity, checkDuplicatedId, async (req, res, next) => {
-    const { id, pw, name, email } = req.body;
+router.post("/", checkAuth("signUp"), checkValidity, checkDuplicatedId, async (req, res, next) => {
+    const { id, pw, name } = req.body;
+    const email = req.decoded.email;
 
     const psqlClient = await psql.connect();
 
@@ -168,13 +168,29 @@ router.delete("/", checkAuth(), async (req, res, next) => {
   const loginUser = req.decoded;
 
   try {
-    //카카오톡 로그인 
 
-    await psql.query(`
-      DELETE FROM calenduck.login CL
-      USING calenduck.user CU
-      WHERE CL.idx = CU.login_idx AND CU.idx=$1
-    `, [loginUser.idx]);
+    const user = await getOneResult(`
+      SELECT login_idx, kakao_idx
+      FROM calenduck.user
+      WHERE idx = $1 
+      `, [loginUser.idx]);
+
+    const loginIdx = user?.login_idx || null;
+    const kakaoIdx = user?.kakao_idx || null;
+
+    if(loginIdx){
+      await psql.query(`
+        DELETE FROM calenduck.login
+        WHERE idx = $1
+      `, [loginIdx]);
+    }
+
+    if(kakaoIdx){
+      await psql.query(`
+        DELETE FROM calenduck.kakao 
+        WHERE idx = $1
+        `, [kakaoIdx]);
+    }
 
     return res.sendStatus(201);
   } catch (err) {
@@ -194,7 +210,7 @@ router.get("/interests", checkAuth(), async (req, res, next) => {
       WHERE UI.user_idx = $1
     `, [loginUser.idx]);
 
-    if (!interestList) return res.sendStatus(204);
+    if (!interestList || interestList.length === 0) return res.sendStatus(204);
 
     return res.status(200).send({
       list: interestList,
@@ -221,6 +237,8 @@ router.post("/interests/:idx", checkAuth(), async (req, res, next) => {
 
     return res.sendStatus(201);
   } catch (err) {
+    if(err.constraint === "user_interest_pkey") return next(new NotFoundException());
+    if(err.constraint === "fk_interest_to_user_interest" || err.constraint === "fk_user_to_user_interest") return next(new NotFoundException());
     return next(err);
   }
 });
@@ -240,6 +258,7 @@ router.delete("/interests/:idx", checkAuth(), async (req, res, next) => {
 
     return res.sendStatus(201);
   } catch (err) {
+    if(err.constraint === "fk_interest_to_user_interest" || err.constraint === "fk_user_to_user_interest") return next(new NotFoundException());
     return next(err);
   }
 });
