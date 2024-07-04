@@ -151,7 +151,7 @@ router.post("/users/permission", async (req, res, next) => {
         `, [userIdx, interestIdx]); // userIdx와 interestIdx가 있는지 확인하기 위해서 cross join 후 확인
         // 111, 7 하면 null 나옴.
 
-        if (userAndInterest.length === 0) {
+        if (!userAndInterest) {
             return next(new NotFoundException());
         }
 
@@ -194,7 +194,7 @@ router.post("/users/asks/:idx/reply", async (req, res, next) => {
             WHERE idx = $1
         `, [askIdx]); // 문의가 존재하는지 확인
 
-        if (ask.length === 0) {
+        if (!ask) {
             return next(new NotFoundException());
         }
 
@@ -225,9 +225,8 @@ router.put("/interest/:idx", async (req, res, next) => {
             SELECT idx FROM calenduck.interest
             WHERE idx = $1
         `, [interestIdx]); // 관심사가 존재하는지 확인
-        console.log(interest);
 
-        if (interest.length === 0) {
+        if (!interest) {
             return next(new NotFoundException());
         }
 
@@ -259,9 +258,8 @@ router.put("/managers/assignment", async (req, res, next) => {
             SELECT idx FROM calenduck.interest
             WHERE idx = $1
         `, [afterInterestIdx]); // 수정하려는 관심사가 존재하는지 확인
-        console.log(interest);
 
-        if (interest.length === 0) {
+        if (!interest) {
             return next(new NotFoundException());
         }
 
@@ -270,9 +268,8 @@ router.put("/managers/assignment", async (req, res, next) => {
             FROM calenduck.user
             WHERE idx IN($1, $2)    
         `, [beforeManagerIdx, afterManagerIdx]);
-        console.log(userList);
 
-        if (userList.length != 2) {
+        if (userList.length !== 2) {
             return next(new NotFoundException());
         }
 
@@ -281,7 +278,6 @@ router.put("/managers/assignment", async (req, res, next) => {
             FROM calenduck.manager
             WHERE user_idx = $1    
         `, [beforeManagerIdx]);
-        console.log(manager);
 
         if (!manager) {
             return next(new NotFoundException());
@@ -374,9 +370,14 @@ router.delete("/managers/:idx/permission", async (req, res, next) => {
             SELECT interest_idx FROM calenduck.manager
             WHERE user_idx = $1
         `, [managerIdx]);
-        const interestIdx = manager.interest_idx;
-        console.log(interestIdx);
 
+        if (!manager) { // null인 경우 바로 응답.
+            return res.sendStatus(201);
+        }
+
+        const interestIdx = manager.interest_idx;
+
+        // manager에서 general로 전환 -> 관심사 is_assigned를 true로 전환 -> manager 테이블에서 삭제
         const psqlClient = await psql.connect();
         await psqlClient.query("BEGIN");
 
