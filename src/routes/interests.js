@@ -1,7 +1,5 @@
 const router = require("express").Router();
 
-const psql = require("../../database/connect/postgre");
-
 const {
     getManyResults
 } = require("../modules/sqlHandler");
@@ -27,3 +25,5 @@ router.get("/", async (req, res, next) => {
         return next(err);
     }
 })
+
+module.exports = router;
