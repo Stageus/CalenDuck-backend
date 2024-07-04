@@ -1,5 +1,7 @@
 const router = require("express").Router();
+
 const notificationSchema = require("../../database/mongooseSchema/notificationSchema");
+
 const checkAuth = require("../middlewares/checkAuth");
 
 router.get("/", checkAuth, async (req, res, next) => {
@@ -9,7 +11,7 @@ router.get("/", checkAuth, async (req, res, next) => {
   const skipAmount = (page - 1) * pageSize;
 
   try {
-    const findNotificationQueryResult = await notificationSchema
+    const notificationList = await notificationSchema
       .find(
         {
           user_idx: loginUser.idx,
@@ -20,9 +22,7 @@ router.get("/", checkAuth, async (req, res, next) => {
       .skip(skipAmount)
       .limit(pageSize);
 
-    const notificationList = findNotificationQueryResult;
-
-    if (!notificationList.length) {
+    if (!notificationList) {
       return res.sendStatus(204);
     }
 
@@ -43,14 +43,13 @@ router.get("/counts", checkAuth, async (req, res, next) => {
   const loginUser = req.decoded;
 
   try {
-    const countNotiricationQueryResult =
+    const count =
       await notificationSchema.countDocuments({
         user_idx: loginUser.idx,
         is_read: false,
       });
-    const count = countNotiricationQueryResult;
 
-    res.status(200).send({
+    return res.status(200).send({
       notif_count: count,
     });
   } catch (err) {

@@ -3,6 +3,7 @@
  * @param {import("express").RequestHandler} requestHandler
  * @returns {import("express").RequestHandler}
  */
+
 const endRequestHandler = (requestHandler) => {
   return async (req, res, next) => {
     try {
