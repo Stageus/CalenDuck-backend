@@ -144,13 +144,12 @@ router.post("/users/permission", async (req, res, next) => {
 
     try {
         const userAndInterest = await getOneResult(`
-            SELECT CU.idx AS user_idx, CI.idx AS interest_idx
+            SELECT CU.idx AS user_idx, CI.idx AS interest_idx, CI.interest AS interest
             FROM calenduck.user CU
             CROSS JOIN calenduck.interest CI
             WHERE CU.idx = $1 AND CI.idx = $2
-        `, [userIdx, interestIdx]); // userIdx와 interestIdx가 있는지 확인하기 위해서 cross join 후 확인
-        // 111, 7 하면 null 나옴.
-
+        `, [userIdx, interestIdx]); // userIdx와 interestIdx가 있는지 확인하기 위해서 cross join 후 확인. 알림을 위해서 interest 받기.
+        console.log(userAndInterest);
         if (!userAndInterest) {
             return next(new NotFoundException());
         }
@@ -167,6 +166,11 @@ router.post("/users/permission", async (req, res, next) => {
             SET role = 'manager'
             WHERE idx = $1    
         `, [userIdx]);
+        await psqlClient.query(`
+            UPDATE calenduck.interest
+            SET is_assigned = true
+            WHERE idx = $1    
+        `, [interestIdx]);
 
         await psqlClient.query("COMMIT");
 
