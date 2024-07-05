@@ -8,7 +8,6 @@ const checkDuplicatedId = require("../middlewares/checkDuplicatedId");
 const checkAuth = require("../middlewares/checkAuth");
 
 const makeToken = require("../modules/makeToken");
-const endRequestHandler = require("../modules/endRequestHandler");
 const { getOneResult, getManyResults } = require("../modules/sqlHandler");
 
 const {
