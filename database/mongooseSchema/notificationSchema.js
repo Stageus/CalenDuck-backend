@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { Schema } = mongoose;
 
 const notificationSchema = new mongoose.Schema({
   type: {
@@ -13,6 +14,10 @@ const notificationSchema = new mongoose.Schema({
     type: Boolean,
     required: true,
   },
+  data: {
+    type: Schema.Types.Mixed,
+    required: true,
+  }
 });
 
 notificationSchema.set("timestamps", {
