@@ -7,31 +7,27 @@ const notificationSchema = require("../../database/mongooseSchema/notificationSc
  * @param {*} data
  */
 
-const makeNotification = async (receiverIdx, type, data) => {
+const makeNotification = async (receiverIdx, type, inputData) => {
+  let notificationData = {
+    type: type,
+    user_idx: receiverIdx,
+    is_read: false,
+    data: {},
+  };
+
   if (type === "import") {
-    await notificationSchema.create({
-      type: type,
-      user_idx: receiverIdx,
-      interest: data.interest,
-      contents: data.contents,
-      is_read: false,
-    });
+    notificationData.data.contents = inputData.contents;
+    if (inputData.interest) {
+      notificationData.data.interest = inputData.interest;
+    }
   } else if (type === "manager") {
-    await notificationSchema.create({
-      type: type,
-      user_idx: receiverIdx,
-      interest: data.interest,
-      is_read: false,
-    });
+    notificationData.data.interest = inputData.interest;
   } else if (type === "reply") {
-    await notificationSchema.create({
-      type: type,
-      user_idx: receiverIdx,
-      title: data.title,
-      reply: data.reply,
-      is_read: false,
-    });
+    notificationData.data.title = inputData.title;
+    notificationData.data.reply = inputData.reply;
   }
+
+  await notificationSchema.create(notificationData);
 };
 
 module.exports = makeNotification;
