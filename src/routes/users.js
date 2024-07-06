@@ -74,29 +74,18 @@ router.post("/id/find", checkAuth("findId"), async (req, res, next) => {
 
 //비밀번호 찾기
 router.post("/pw/find", checkValidity, checkAuth("findPw"), async (req, res, next) => {
-    const { name, id } = req.body;
-    const email = req.decoded.email;
+    const { email, id } = req.decoded;
 
     try {
-
       const user = await getOneResult(`
         SELECT CU.email
         FROM calenduck.login CL 
         JOIN calenduck.user CU 
         ON CU.login_idx = CL.idx 
         WHERE CU.name = $1 AND CU.email = $2 AND CL.id = $3
-      `, [name, email, id])
+      `, [email, id])
 
       if (!user) return next(new UnauthorizedException());
-
-      const emailToken = makeToken(
-        {
-          email: user.email,
-          type: "resetPw",
-        }
-      );
-
-      res.cookie("access_token", emailToken);
 
       return res.sendStatus(201);
     } catch (err) {
@@ -106,16 +95,16 @@ router.post("/pw/find", checkValidity, checkAuth("findPw"), async (req, res, nex
 );
 
 //비밀번호 재설정
-router.put("/pw", checkValidity, checkAuth("resetPw"), async (req, res, next) => {
+router.put("/pw", checkValidity, checkAuth("findPw"), async (req, res, next) => {
   const { pw } = req.body;
-  const user = req.decoded;
+  const { email } = req.decoded;
 
   try {
     await psql.query(`
       UPDATE calenduck.login CL SET pw = $1 
       FROM calenduck.user CU 
       WHERE CL.idx = CU.login_idx AND CU.email = $2
-    `, [pw, user.email]);
+    `, [pw, email]);
 
     return res.sendStatus(201);
   } catch (err) {
