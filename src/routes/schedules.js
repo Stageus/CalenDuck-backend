@@ -162,4 +162,73 @@ router.get("/details/interest", async (req, res, next) => {
     }
 })
 
+// 특정 날짜 스케줄 전체 불러오기
+router.get("/details", async (req, res, next) => {
+    const { date } = req.query;
+
+    try{
+        const year = date.substring(0, 4);
+        const month = date.substring(4, 6);
+        const day =  date.substring(6, 8)
+
+        // 빈 리스트 초기화
+        let scheduleList = [];
+
+        // 개인 스케줄 가져오기
+        const personal_schedule = await getManyResults(`
+            SELECT personal_schedule.idx AS idx, personal_schedule.time AS time, personal_schedule.contents AS contents, personal_schedule.priority AS priority
+            FROM calenduck.personal_schedule
+            WHERE EXTRACT(YEAR FROM personal_schedule.time) = $1 
+            AND EXTRACT(MONTH FROM personal_schedule.time) = $2
+            AND EXTRACT(DAY FROM personal_schedule.time) = $3
+        `, [year, month, day]);
+
+        // 관심사 스케줄 가져오기
+        const interest_schedule = await getManyResults(`
+            SELECT interest_schedule.idx AS idx, interest_schedule.time AS time, interest_schedule.contents AS contents, interest_schedule.priority AS priority, interest.interest AS name
+            FROM calenduck.interest_schedule
+            INNER JOIN calenduck.interest ON interest_schedule.interest_idx = interest.idx
+            WHERE EXTRACT(YEAR FROM interest_schedule.time) = $1 
+            AND EXTRACT(MONTH FROM interest_schedule.time) = $2
+            AND EXTRACT(DAY FROM interest_schedule.time) = $3
+        `, [year, month, day]);
+
+        // 스케줄이 없는 경우
+        if (personal_schedule === 0 && interest_schedule.length === 0) {
+            return res.sendStatus(204);
+        }
+
+        // 개인 스케줄을 리스트에 추가
+        personal_schedule.forEach(schedule => {
+            scheduleList.push({
+                idx: schedule.idx,
+                name: null,
+                time: schedule.time,
+                type: 'personal',
+                contents: schedule.contents,
+                priority: schedule.priority
+            });
+        });
+        
+        // 관심사 스케줄을 리스트에 추가
+        interest_schedule.forEach(schedule => {
+            scheduleList.push({
+                idx: schedule.idx,
+                name: schedule.name,
+                time: schedule.time,
+                type: 'interest',
+                contents: schedule.contents,
+                priority: schedule.priority
+            });
+        });
+       
+        // 결과 반환
+        return res.status(200).json({
+            list: scheduleList
+        });
+    }catch(err){
+        return next(err);
+    }
+})
+
 module.exports = router;
