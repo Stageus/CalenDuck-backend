@@ -294,4 +294,32 @@ router.get("/searches", async (req, res, next) => {
     }
 })
 
+// 스케줄 중요 알림 설정
+router.put("/:idx/notify", async (req, res, next) => {
+    const { idx } = req.params;
+
+    try {
+        // 해당 스케줄의 현재 priority 값 조회
+        const schedule = await getOneResult(`
+            SELECT priority
+            FROM calenduck.personal_schedule
+            WHERE idx = $1
+        `, [idx]);
+
+        // priority 값을 토글
+        const newPriority = !schedule.priority;
+
+        // priority 값 업데이트
+        await psql.query(`
+            UPDATE calenduck.personal_schedule
+            SET priority = $1
+            WHERE idx = $2
+        `, [newPriority, idx]);
+
+        return res.sendStatus(201);
+    }catch(err){
+        return next(err);
+    }
+})
+
 module.exports = router;
