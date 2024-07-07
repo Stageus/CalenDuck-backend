@@ -5,8 +5,8 @@ const { BadRequestException } = require("../model/customException");
  * 
  * @param {Object} data
  * @param {Array.<string>} [data.auth]
- * @param {Array.<string>} [data.stringFields]
- * @param {Array.<string>} [data.numberFields]
+ * @param {Array.<string>} [data.stringField]
+ * @param {Array.<string>} [data.numberField]
  * @example
  * { "auth": ["id", "pw"], "stringFields": ["title", "contents"], "numberFields": ["idx"] };
  */
@@ -23,19 +23,24 @@ const checkValidity = (data) => {
 
         for (typeKey in data) {
             for (const item of data[typeKey]) {
-                const value = req.body[item] || req.params[item] || req.query[item];
+                let source;
+                const value = req.body[item] ? (source = 'body', req.body[item]) :
+                    req.params[item] ? (source = 'params', req.params[item]) :
+                        req.query[item] ? (source = 'query', req.query[item]) :
+                            undefined;
+
                 if (!value) {
                     return next(new BadRequestException());
                 }
 
                 if (typeKey === "stringField") {
-                    req.body[item] ? req.body[item] = value.replace(whitespaceRegex, ' ') : req.query[item] = value.replace(whitespaceRegex, ' ');
+                    req[source][item] = value.replace(whitespaceRegex, ' ');
                 } else if (typeKey === "numberField") {
                     if (!paramRegex.test(value)) {
                         return next(new BadRequestException());
                     }
 
-                    req.params[item] ? req.params[item] = parseInt(req.params[item]) : req.query[item] = parseInt(req.query[item]);
+                    req[source][item] = parseInt(req[source][item]);
                 } else if (typeKey === "authField") {
                     if (item === "id" && !idRegex.test(value)) {
                         return next(new BadRequestException());
