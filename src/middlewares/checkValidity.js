@@ -8,6 +8,7 @@ const checkValidity = (data) => {
         const nameRegex = /^[a-zA-Zㄱ-ㅎ가-힣]{2,32}$/;
         const whitespaceRegex = /[\r\n\t ]+/g;
         const paramRegex = /^(?!0)[\d]+$/
+        const codeRegex = /^[\d]{6}$/;
 
         for (typeKey in data) {
             for (const item of data[typeKey]) {
@@ -16,7 +17,16 @@ const checkValidity = (data) => {
                     return next(new BadRequestException());
                 }
 
-                if (typeKey === "authField") {
+
+                if (typeKey === "stringField") {
+                    req.body[item] ? req.body[item] = value.replace(whitespaceRegex, ' ') : req.query[item] = value.replace(whitespaceRegex, ' ');
+                } else if (typeKey === "numberField") {
+                    if (!paramRegex.test(value)) {
+                        return next(new BadRequestException());
+                    }
+
+                    req.params[item] ? req.params[item] = parseInt(req.params[item]) : req.query[item] = parseInt(req.query[item]);
+                } else if (typeKey === "authField") {
                     if (item === "id" && !idRegex.test(value)) {
                         return next(new BadRequestException());
                     }
@@ -29,14 +39,10 @@ const checkValidity = (data) => {
                     if (item === "name" && !nameRegex.test(value)) {
                         return next(new BadRequestException());
                     }
-                } else if (typeKey === "stringField") {
-                    req.body[item] ? req.body[item] = value.replace(whitespaceRegex, ' ') : req.query[item] = value.replace(whitespaceRegex, ' ');
-                } else if (typeKey === "numberField") {
-                    if (!paramRegex.test(value)) {
+                } else if (typeKey === "code") {
+                    if (!codeRegex.test(value)) {
                         return next(new BadRequestException());
                     }
-
-                    req.params[item] ? req.params[item] = parseInt(req.params[item]) : req.query[item] = parseInt(req.query[item]);
                 }
             }
         }
