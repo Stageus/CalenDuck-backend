@@ -209,7 +209,7 @@ router.get("/details", async (req, res, next) => {
                 priority: schedule.priority
             });
         });
-        
+
         // 관심사 스케줄을 리스트에 추가
         interest_schedule.forEach(schedule => {
             scheduleList.push({
@@ -222,6 +222,69 @@ router.get("/details", async (req, res, next) => {
             });
         });
        
+        // 결과 반환
+        return res.status(200).json({
+            list: scheduleList
+        });
+    }catch(err){
+        return next(err);
+    }
+})
+
+// 스케줄 검색
+router.get("/searches", async (req, res, next) => {
+    const { startDate, endDate, content } = req.query;
+
+    try {
+        // 빈 리스트 초기화
+        let scheduleList = [];
+
+        // 개인 스케줄 검색
+        const personal_schedule = await getManyResults(`
+            SELECT personal_schedule.idx, personal_schedule.time, personal_schedule.contents, personal_schedule.priority
+            FROM calenduck.personal_schedule
+            WHERE (personal_schedule.time BETWEEN TO_DATE($1, 'YYYYMMDD') AND TO_DATE($2, 'YYYYMMDD'))
+            AND personal_schedule.contents ILIKE '%' || $3 || '%'
+        `, [startDate, endDate, content]);
+
+        // 관심사 스케줄 검색
+        const interest_schedule = await getManyResults(`
+            SELECT interest_schedule.idx, interest_schedule.time, interest_schedule.contents, interest_schedule.priority, interest.interest
+            FROM calenduck.interest_schedule
+            INNER JOIN calenduck.interest ON interest_schedule.interest_idx = interest.idx
+            WHERE (interest_schedule.time BETWEEN TO_DATE($1, 'YYYYMMDD') AND TO_DATE($2, 'YYYYMMDD'))
+            AND interest_schedule.contents ILIKE '%' || $3 || '%'
+        `, [startDate, endDate, content]);
+
+        // 스케줄이 없는 경우
+        if (personal_schedule.length === 0 && interest_schedule.length === 0) {
+            return res.sendStatus(204); // No Content
+        }
+
+        // 개인 스케줄을 리스트에 추가
+        personal_schedule.forEach(schedule => {
+            scheduleList.push({
+                idx: schedule.idx,
+                name: null,
+                date_time: schedule.time,
+                type: 'personal',
+                contents: schedule.contents,
+                priority: schedule.priority
+            });
+        });
+
+        // 관심사 스케줄을 리스트에 추가
+        interest_schedule.forEach(schedule => {
+            scheduleList.push({
+                idx: schedule.idx,
+                name: schedule.interest,
+                date_time: schedule.time,
+                type: 'interest',
+                contents: schedule.contents,
+                priority: schedule.priority
+            });
+        });
+
         // 결과 반환
         return res.status(200).json({
             list: scheduleList
