@@ -113,4 +113,53 @@ router.get("/interest", async (req, res, next) => {
     }
 })
 
+// 특정 날짜에서 특정 관심사 불러오기
+router.get("/details/interest", async (req, res, next) => {
+    const { date, interestIdx} = req.query;
+
+    try{
+        const year = date.substring(0, 4);
+        const month = date.substring(4, 6);
+        const day =  date.substring(6, 8)
+
+        // 빈 리스트 초기화
+        let scheduleList = [];
+
+        // 관심사 스케줄 불러오기
+        const interest_schedule = await getManyResults(`
+            SELECT interest_schedule.idx, interest_schedule.time, interest_schedule.contents, interest_schedule.priority, interest.interest as name
+            FROM calenduck.interest_schedule
+            INNER JOIN calenduck.interest ON interest_schedule.interest_idx = interest.idx
+            WHERE EXTRACT(YEAR FROM interest_schedule.time) = $1 
+            AND EXTRACT(MONTH FROM interest_schedule.time) = $2
+            AND EXTRACT(DAY FROM interest_schedule.time) = $3
+            AND interest_schedule.interest_idx = $4
+            ORDER BY interest_schedule.time ASC
+        `, [year, month, day, interestIdx])
+
+        // 스케줄이 없는 경우
+        if (interest_schedule.length === 0) {
+            return res.sendStatus(204); // No Content
+        }
+
+        // 관심사 스케줄을 리스트에 추가
+        interest_schedule.forEach(schedule => {
+            scheduleList.push({
+                idx: schedule.idx,
+                name: schedule.name,
+                time: schedule.time,
+                contents: schedule.contents,
+                priority: schedule.priority
+            });
+        });
+
+        // 결과 반환
+        return res.status(200).json({
+            list: scheduleList
+        });
+    }catch(err){
+        return next(err);
+    }
+})
+
 module.exports = router;
