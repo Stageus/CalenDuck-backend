@@ -1,5 +1,16 @@
 const { BadRequestException } = require("../model/customException");
 
+/**
+ * Processes the data object.
+ * 
+ * @param {Object} data
+ * @param {Array.<string>} [data.auth]
+ * @param {Array.<string>} [data.stringFields]
+ * @param {Array.<string>} [data.numberFields]
+ * @example
+ * { "auth": ["id", "pw"], "stringFields": ["title", "contents"], "numberFields": ["idx"] };
+ */
+
 const checkValidity = (data) => {
     return (req, res, next) => {
         const idRegex = /^(?=.*[a-zA-Z])(?=.*\d)[a-zA-Z\d]{6,12}$/; // 영어 + 숫자, 각 최소 1개 이상, 6~12
@@ -16,7 +27,6 @@ const checkValidity = (data) => {
                 if (!value) {
                     return next(new BadRequestException());
                 }
-
 
                 if (typeKey === "stringField") {
                     req.body[item] ? req.body[item] = value.replace(whitespaceRegex, ' ') : req.query[item] = value.replace(whitespaceRegex, ' ');
