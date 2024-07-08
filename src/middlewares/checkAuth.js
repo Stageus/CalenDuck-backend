@@ -5,6 +5,10 @@ const {
     UnauthorizedException
 } = require("../model/customException");
 
+/**
+ * @param {"signup" | "findId" | "findPw" | "login" | "master" | "manager"} type
+ */
+
 const checkAuth = (type = null) => {
     return (req, res, next) => {
         const token = req.cookies.access_token;
@@ -18,7 +22,10 @@ const checkAuth = (type = null) => {
             if (validTypes.includes(type) && jwtData.type !== type) {
                 return next(new UnauthorizedException());
             }
-            if (type === "admin" && jwtData.rank !== "admin") {
+            if (type === "master" && jwtData.rank !== "master") {
+                return next(new ForbiddenException());
+            }
+            if (type === "manager" && jwtData.rank !== "manager") {
                 return next(new ForbiddenException());
             }
             return next();
