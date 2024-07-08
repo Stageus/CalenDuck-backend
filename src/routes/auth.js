@@ -11,6 +11,7 @@ const {
 
 const endRequestHandler = require("../modules/endRequestHandler");
 const { getOneResult } = require("../modules/sqlHandler");
+const makeToken = require("../modules/makeToken");
 
 
 router.post("/email", checkValidity, endRequestHandler(async (req, res, next) => {
@@ -65,7 +66,7 @@ router.post("/email", checkValidity, endRequestHandler(async (req, res, next) =>
 );
 
 router.post("/check-code", endRequestHandler(async (req, res, next) => {
-  const { code = null, pageType } = req.body;
+  const { email, code = null, pageType, id } = req.body;
 
   const redis = require("redis").createClient();
   await redis.connect();
@@ -77,12 +78,17 @@ router.post("/check-code", endRequestHandler(async (req, res, next) => {
       return next(new UnauthorizedException());
     }
 
-    const emailToken = makeToken(
+    const tokenPayload = 
       {
-        email: user.email,
+        email: email,
         type: pageType 
       } 
-    );
+
+    if(pageType == "findPw" && id){
+      tokenPayload.id = id;
+    }
+    
+    const emailToken = makeToken(tokenPayload);
 
     res.cookie("access_token", emailToken);
     res.sendStatus(201);

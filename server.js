@@ -1,4 +1,5 @@
 const express = require("express");
+require("dotenv").config();
 const mongoose = require("./database/connect/mongodb");
 const cookieParser = require("cookie-parser");
 const errorHandler = require("./src/middlewares/errorHandler");
@@ -14,7 +15,6 @@ const authApi = require("./src/routes/auth");
 // const schedulesApi = require("./src/routes/schedules");
 const usersApi = require("./src/routes/users");
 
-require("dotenv").config();
 const app = express();
 const port = process.env.HTTP_PORT;
 app.use(express.json());

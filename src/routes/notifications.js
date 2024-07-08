@@ -4,13 +4,14 @@ const notificationSchema = require("../../database/mongooseSchema/notificationSc
 
 const checkAuth = require("../middlewares/checkAuth");
 
-router.get("/", checkAuth, async (req, res, next) => {
-  const loginUser = req.decoded;
-  const { page } = req.body;
-  const pageSize = 20;
-  const skipAmount = (page - 1) * pageSize;
+const endRequestHandler = require("../modules/endRequestHandler");
 
-  try {
+router.get("/", checkAuth, endRequestHandler(async (req, res, next) => {
+    const loginUser = req.decoded;
+    const { page } = req.body;
+    const pageSize = 20;
+    const skipAmount = (page - 1) * pageSize;
+
     const notificationList = await notificationSchema
       .find(
         {
@@ -34,27 +35,21 @@ router.get("/", checkAuth, async (req, res, next) => {
     return res.status(200).send({
       list: notificationList,
     });
-  } catch (err) {
-    return next(err);
-  }
-});
+  })
+);
 
-router.get("/counts", checkAuth, async (req, res, next) => {
-  const loginUser = req.decoded;
+router.get("/counts", checkAuth, endRequestHandler(async (req, res, next) => {
+    const loginUser = req.decoded;
 
-  try {
-    const count =
-      await notificationSchema.countDocuments({
-        user_idx: loginUser.idx,
-        is_read: false,
-      });
+    const count = await notificationSchema.countDocuments({
+      user_idx: loginUser.idx,
+      is_read: false,
+    });
 
     return res.status(200).send({
       notif_count: count,
     });
-  } catch (err) {
-    return next(err);
-  }
-});
+  })
+);
 
 module.exports = router;
