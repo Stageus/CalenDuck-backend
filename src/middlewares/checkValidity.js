@@ -2,9 +2,10 @@ const { BadRequestException } = require("../model/customException");
 
 /**
  * @typedef {{
- *  auth?: string[],
- *  stringFields?: string[],
- *  numberFields?: string[]
+ *  stringField?: string[],
+ *  numberField?: string[]
+ *  authField?: string[],
+ *  codeField?: string[],
  * }} ValidityOption
  */
 
@@ -12,9 +13,10 @@ const { BadRequestException } = require("../model/customException");
  * Processes the data object.
  * 
  * @param {ValidityOption} data
- * @example checkValidity({ auth: ['id', 'pw']}); // id랑 비밀번호 어쩌구
- * @example checkValidity({ auth: ['id', 'pw']});
- * @example checkValidity({ auth: ['id', 'pw']});
+ * @example checkValidity({ "stringField": ["interestName"] }); // 개행 처리
+ * @example checkValidity({ "numberField": ["idx"] }); // 정수 정규식 처리
+ * @example checkValidity({ "authField": ["id", "pw"] }); // 인증 정규식 처리
+ * @example checkValidity({ "codeField": ["code"] }); // 6자리 인증코드
  * @returns {import('express').RequestHandler}
  */
 
@@ -31,10 +33,10 @@ const checkValidity = (data) => {
         for (typeKey in data) {
             for (const item of data[typeKey]) {
                 let source;
-                const value = req.body[item] ? (source = 'body', req.body[item]) :
-                    req.params[item] ? (source = 'params', req.params[item]) :
-                        req.query[item] ? (source = 'query', req.query[item]) :
-                            undefined;
+                const value = req.body[item] ? (source = "body", req.body[item]) :
+                    req.params[item] ? (source = "params", req.params[item]) :
+                        req.query[item] ? (source = "query", req.query[item]) :
+                            null;
 
                 if (!value) {
                     return next(new BadRequestException());
@@ -42,13 +44,15 @@ const checkValidity = (data) => {
 
                 if (typeKey === "stringField") {
                     req[source][item] = value.replace(whitespaceRegex, ' ');
-                } else if (typeKey === "numberField") {
+                }
+                if (typeKey === "numberField") {
                     if (!paramRegex.test(value)) {
                         return next(new BadRequestException());
                     }
 
                     req[source][item] = parseInt(req[source][item]);
-                } else if (typeKey === "authField") {
+                }
+                if (typeKey === "authField") {
                     if (item === "id" && !idRegex.test(value)) {
                         return next(new BadRequestException());
                     }
@@ -61,7 +65,8 @@ const checkValidity = (data) => {
                     if (item === "name" && !nameRegex.test(value)) {
                         return next(new BadRequestException());
                     }
-                } else if (typeKey === "code") {
+                }
+                if (typeKey === "codeField") {
                     if (!codeRegex.test(value)) {
                         return next(new BadRequestException());
                     }
