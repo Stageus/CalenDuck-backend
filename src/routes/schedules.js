@@ -320,6 +320,34 @@ router.put("/:idx/notify", async (req, res, next) => {
     }catch(err){
         return next(err);
     }
-})
+}) 
+
+// 관심사 스케줄 중요 알림 설정
+router.put("/interest/:idx/notify", async (req, res, next) => {
+    const { idx } = req.params;
+
+    try {
+        // 해당 관심사 스케줄의 현재 priority 값 조회
+        const interest_schedule = await getOneResult(`
+            SELECT priority
+            FROM calenduck.interest_schedule
+            WHERE idx = $1
+        `, [idx]);
+
+        // priority 값을 토글
+        const newPriority = !interest_schedule.priority;
+
+        // priority 값 업데이트
+        await psql.query(`
+            UPDATE calenduck.interest_schedule
+            SET priority = $1
+            WHERE idx = $2
+        `, [newPriority, idx]);
+
+        return res.sendStatus(201);
+    }catch(err){
+        return next(err);
+    }
+}) 
 
 module.exports = router;
