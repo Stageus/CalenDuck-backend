@@ -176,6 +176,8 @@ router.post("/users/permission", checkValidity({ "stringField": ["interestIdx"],
 
         await psqlClient.query("COMMIT");
 
+        makeNotification(userIdx, "manager", { "interest": userAndInterest.interest });
+
         return res.sendStatus(201);
     } catch (err) {
         if (err.constraint === "manager_user_idx_key" || err.constraint === "manager_interest_idx_key") {
@@ -196,7 +198,7 @@ router.post("/users/asks/:idx/reply", checkValidity({ "stringField": ["contents"
 
     try {
         const ask = await getOneResult(`
-            SELECT idx FROM calenduck.ask
+            SELECT title FROM calenduck.ask
             WHERE idx = $1
         `, [askIdx]); // 문의가 존재하는지 확인
 
@@ -209,6 +211,8 @@ router.post("/users/asks/:idx/reply", checkValidity({ "stringField": ["contents"
             SET reply = $1
             WHERE idx = $2
         `, [contents, askIdx]);
+
+        makeNotification(req.decoded.idx, "reply", { "title": ask.title, "reply": contents });
 
         return res.sendStatus(201);
     } catch (err) {
