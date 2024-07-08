@@ -350,4 +350,23 @@ router.put("/interest/:idx/notify", async (req, res, next) => {
     }
 }) 
 
+// 스케줄 생성
+router.post("/", async (req, res, next) => {
+    const { dateTime, contents } = req.body;
+
+     // userId를 직접 설정 (임시 테스트)
+     const userId = 2;
+
+    try {
+        await psql.query(`
+            INSERT INTO calenduck.personal_schedule (user_idx, time, contents)
+            VALUES ($1, $2, $3)
+        `, [userId, dateTime, contents]);
+ 
+        return res.sendStatus(201);
+    }catch(err){
+        return next(err);
+    }
+}) 
+
 module.exports = router;
