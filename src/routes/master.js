@@ -2,6 +2,8 @@ const router = require("express").Router();
 
 const psql = require("../../database/connect/postgre");
 
+const checkValidity = require("../middlewares/checkValidity");
+
 const {
     BadRequestException,
     ConflictException,
@@ -85,12 +87,12 @@ router.get("/managers", async (req, res, next) => {
     }
 })
 
-router.get("/asks", async (req, res, next) => {
+router.get("/asks", checkValidity({ "numberField": ["categoryIdx"] }), async (req, res, next) => {
     const { categoryIdx } = req.query;
 
-    if (!categoryIdx) {
-        return next(new BadRequestException());
-    }
+    // if (!categoryIdx) {
+    //     return next(new BadRequestException());
+    // }
 
     try {
         const askList = await getManyResults(`
@@ -116,7 +118,7 @@ router.get("/asks", async (req, res, next) => {
 })
 
 // 관심사 추가
-router.post("/interests", async (req, res, next) => {
+router.post("/interests", checkValidity({ "stringField": ["interestName"] }), async (req, res, next) => {
     const { interestName } = req.body;
 
     try {
@@ -135,12 +137,12 @@ router.post("/interests", async (req, res, next) => {
 })
 
 // 관심사 계정 권한 부여
-router.post("/users/permission", async (req, res, next) => {
+router.post("/users/permission", checkValidity({ "stringField": ["interestIdx"], "numberField": ["userIdx"] }), async (req, res, next) => {
     const { userIdx, interestIdx } = req.body;
 
-    if (!userIdx || !interestIdx) {
-        return next(new BadRequestException());
-    }
+    // if (!userIdx || !interestIdx) {
+    //     return next(new BadRequestException());
+    // }
 
     try {
         const userAndInterest = await getOneResult(`
@@ -149,7 +151,7 @@ router.post("/users/permission", async (req, res, next) => {
             CROSS JOIN calenduck.interest CI
             WHERE CU.idx = $1 AND CI.idx = $2
         `, [userIdx, interestIdx]); // userIdx와 interestIdx가 있는지 확인하기 위해서 cross join 후 확인. 알림을 위해서 interest 받기.
-        console.log(userAndInterest);
+
         if (!userAndInterest) {
             return next(new NotFoundException());
         }
@@ -174,6 +176,8 @@ router.post("/users/permission", async (req, res, next) => {
 
         await psqlClient.query("COMMIT");
 
+        makeNotification(userIdx, "manager", { "interest": userAndInterest.interest });
+
         return res.sendStatus(201);
     } catch (err) {
         if (err.constraint === "manager_user_idx_key" || err.constraint === "manager_interest_idx_key") {
@@ -184,17 +188,17 @@ router.post("/users/permission", async (req, res, next) => {
 })
 
 // 문의 답변 작성
-router.post("/users/asks/:idx/reply", async (req, res, next) => {
+router.post("/users/asks/:idx/reply", checkValidity({ "stringField": ["contents"] }), async (req, res, next) => {
     const { contents } = req.body;
-    const askIdx = parseInt(req.params.idx);
+    // const askIdx = parseInt(req.params.idx);
 
-    if (!askIdx) {
-        return next(new BadRequestException());
-    }
+    // if (!askIdx) {
+    //     return next(new BadRequestException());
+    // }
 
     try {
         const ask = await getOneResult(`
-            SELECT idx FROM calenduck.ask
+            SELECT title FROM calenduck.ask
             WHERE idx = $1
         `, [askIdx]); // 문의가 존재하는지 확인
 
@@ -208,6 +212,8 @@ router.post("/users/asks/:idx/reply", async (req, res, next) => {
             WHERE idx = $2
         `, [contents, askIdx]);
 
+        makeNotification(req.decoded.idx, "reply", { "title": ask.title, "reply": contents });
+
         return res.sendStatus(201);
     } catch (err) {
         console.log(err);
@@ -216,13 +222,13 @@ router.post("/users/asks/:idx/reply", async (req, res, next) => {
 })
 
 // 관심사 수정
-router.put("/interest/:idx", async (req, res, next) => {
+router.put("/interest/:idx", checkValidity({ "stringField": ["interestName"], "numberField": ["interestIdx"] }), async (req, res, next) => {
     const { interestName } = req.body;
-    const interestIdx = parseInt(req.params.idx);
+    // const interestIdx = parseInt(req.params.idx);
 
-    if (!interestIdx) {
-        return next(new BadRequestException());
-    }
+    // if (!interestIdx) {
+    //     return next(new BadRequestException());
+    // }
 
     try {
         const interest = await getOneResult(`
@@ -250,12 +256,12 @@ router.put("/interest/:idx", async (req, res, next) => {
 })
 
 // 관심사 연결 수정
-router.put("/managers/assignment", async (req, res, next) => {
+router.put("/managers/assignment", checkValidity({ "numberField": ["beforeManagerIdx", "afterManagerIdx", "afterInterestIdx"] }), async (req, res, next) => {
     const { beforeManagerIdx, afterManagerIdx, afterInterestIdx } = req.body;
 
-    if (!afterManagerIdx || !afterInterestIdx || !beforeManagerIdx) {
-        return next(new BadRequestException());
-    }
+    // if (!afterManagerIdx || !afterInterestIdx || !beforeManagerIdx) {
+    //     return next(new BadRequestException());
+    // }
 
     try {
         const interest = await getOneResult(`
@@ -341,12 +347,12 @@ router.put("/managers/assignment", async (req, res, next) => {
 })
 
 // 관심사 삭제
-router.delete("/interest/:idx", async (req, res, next) => {
+router.delete("/interest/:idx", checkValidity({ "numberField": ["interestIdx"] }), async (req, res, next) => {
     const interestIdx = parseInt(req.params.idx);
 
-    if (!interestIdx) {
-        return next(new BadRequestException());
-    }
+    // if (!interestIdx) {
+    //     return next(new BadRequestException());
+    // }
 
     try {
         await psql.query(`
@@ -362,12 +368,12 @@ router.delete("/interest/:idx", async (req, res, next) => {
 })
 
 // 관심사 계정 권한 삭제
-router.delete("/managers/:idx/permission", async (req, res, next) => {
-    const managerIdx = parseInt(req.params.idx);
+router.delete("/managers/:idx/permission", checkValidity({ "numberField": ["managerIdx"] }), async (req, res, next) => {
+    // const managerIdx = parseInt(req.params.idx);
 
-    if (!managerIdx) {
-        return next(new BadRequestException());
-    }
+    // if (!managerIdx) {
+    //     return next(new BadRequestException());
+    // }
 
     try {
         const manager = await getOneResult(`
