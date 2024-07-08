@@ -1,14 +1,21 @@
 const { BadRequestException } = require("../model/customException");
 
 /**
+ * @typedef {{
+ *  auth?: string[],
+ *  stringFields?: string[],
+ *  numberFields?: string[]
+ * }} ValidityOption
+ */
+
+/**
  * Processes the data object.
  * 
- * @param {Object} data
- * @param {Array.<string>} [data.auth]
- * @param {Array.<string>} [data.stringField]
- * @param {Array.<string>} [data.numberField]
- * @example
- * { "auth": ["id", "pw"], "stringFields": ["title", "contents"], "numberFields": ["idx"] };
+ * @param {ValidityOption} data
+ * @example checkValidity({ auth: ['id', 'pw']}); // id랑 비밀번호 어쩌구
+ * @example checkValidity({ auth: ['id', 'pw']});
+ * @example checkValidity({ auth: ['id', 'pw']});
+ * @returns {import('express').RequestHandler}
  */
 
 const checkValidity = (data) => {
