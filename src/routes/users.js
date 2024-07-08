@@ -191,9 +191,6 @@ router.post("/interests/:idx", checkAuth("login"), endRequestHandler(async (req,
     const { idx: interestIdx = null } = req.params;
     const loginUser = req.decoded;
 
-    if (!interestIdx || isNaN(interestIdx))
-      return next(new BadRequestException());
-
     await psql.query(`
       INSERT INTO calenduck.user_interest(user_idx, interest_idx) 
       VALUES($1, $2)
@@ -207,9 +204,6 @@ router.post("/interests/:idx", checkAuth("login"), endRequestHandler(async (req,
 router.delete("/interests/:idx", checkAuth(), endRequestHandler(async (req, res, next) => {
     const { idx: interestIdx = null } = req.params;
     const loginUser = req.decoded;
-
-    if (!interestIdx || isNaN(interestIdx))
-      return next(new BadRequestException());
 
     await psql.query(`
       DELETE FROM calenduck.user_interest 
