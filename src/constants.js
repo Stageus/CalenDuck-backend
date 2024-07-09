@@ -15,6 +15,9 @@ const min = 100000;
 const max = 999999;
 const range = max - min + 1;
 
+// token 발급시간
+const expiresIn = "1h";
+
 module.exports = {
     idRegex,
     pwRegex,
@@ -26,5 +29,6 @@ module.exports = {
     pageSize,
     min,
     max,
-    range
+    range,
+    expiresIn
 };
