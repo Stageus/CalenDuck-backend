@@ -161,7 +161,7 @@ router.get("/details/interest", checkAuth(), async (req, res, next) => {
 })
 
 // 특정 날짜 스케줄 전체 불러오기
-router.get("/details", async (req, res, next) => {
+router.get("/details", checkAuth(), async (req, res, next) => {
     const { date } = req.query;
 
     try{
@@ -173,7 +173,7 @@ router.get("/details", async (req, res, next) => {
         let scheduleList = [];
 
         // 개인 스케줄 가져오기
-        const personal_schedule = await getManyResults(`
+        const personalSchedule = await getManyResults(`
             SELECT personal_schedule.idx AS idx, personal_schedule.time AS time, personal_schedule.contents AS contents, personal_schedule.priority AS priority
             FROM calenduck.personal_schedule
             WHERE EXTRACT(YEAR FROM personal_schedule.time) = $1 
@@ -182,7 +182,7 @@ router.get("/details", async (req, res, next) => {
         `, [year, month, day]);
 
         // 관심사 스케줄 가져오기
-        const interest_schedule = await getManyResults(`
+        const interestSchedule = await getManyResults(`
             SELECT interest_schedule.idx AS idx, interest_schedule.time AS time, interest_schedule.contents AS contents, interest_schedule.priority AS priority, interest.interest AS name
             FROM calenduck.interest_schedule
             INNER JOIN calenduck.interest ON interest_schedule.interest_idx = interest.idx
@@ -192,12 +192,12 @@ router.get("/details", async (req, res, next) => {
         `, [year, month, day]);
 
         // 스케줄이 없는 경우
-        if (personal_schedule === 0 && interest_schedule.length === 0) {
+        if (personalSchedule === 0 && interestSchedule.length === 0) {
             return res.sendStatus(204);
         }
 
         // 개인 스케줄을 리스트에 추가
-        personal_schedule.forEach(schedule => {
+        personalSchedule.forEach(schedule => {
             scheduleList.push({
                 idx: schedule.idx,
                 name: null,
@@ -209,7 +209,7 @@ router.get("/details", async (req, res, next) => {
         });
 
         // 관심사 스케줄을 리스트에 추가
-        interest_schedule.forEach(schedule => {
+        interestSchedule.forEach(schedule => {
             scheduleList.push({
                 idx: schedule.idx,
                 name: schedule.name,
