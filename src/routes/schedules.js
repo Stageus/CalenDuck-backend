@@ -230,7 +230,7 @@ router.get("/details", checkAuth(), async (req, res, next) => {
 })
 
 // 스케줄 검색
-router.get("/searches", async (req, res, next) => {
+router.get("/searches", checkAuth(), async (req, res, next) => {
     const { startDate, endDate, content } = req.query;
 
     try {
@@ -238,7 +238,7 @@ router.get("/searches", async (req, res, next) => {
         let scheduleList = [];
 
         // 개인 스케줄 검색
-        const personal_schedule = await getManyResults(`
+        const personalSchedule = await getManyResults(`
             SELECT personal_schedule.idx, personal_schedule.time, personal_schedule.contents, personal_schedule.priority
             FROM calenduck.personal_schedule
             WHERE (personal_schedule.time BETWEEN TO_DATE($1, 'YYYYMMDD') AND TO_DATE($2, 'YYYYMMDD'))
@@ -246,7 +246,7 @@ router.get("/searches", async (req, res, next) => {
         `, [startDate, endDate, content]);
 
         // 관심사 스케줄 검색
-        const interest_schedule = await getManyResults(`
+        const interestSchedule = await getManyResults(`
             SELECT interest_schedule.idx, interest_schedule.time, interest_schedule.contents, interest_schedule.priority, interest.interest
             FROM calenduck.interest_schedule
             INNER JOIN calenduck.interest ON interest_schedule.interest_idx = interest.idx
@@ -255,12 +255,12 @@ router.get("/searches", async (req, res, next) => {
         `, [startDate, endDate, content]);
 
         // 스케줄이 없는 경우
-        if (personal_schedule.length === 0 && interest_schedule.length === 0) {
-            return res.sendStatus(204); // No Content
+        if (personalSchedule.length === 0 && interestSchedule.length === 0) {
+            return res.sendStatus(204);
         }
 
         // 개인 스케줄을 리스트에 추가
-        personal_schedule.forEach(schedule => {
+        personalSchedule.forEach(schedule => {
             scheduleList.push({
                 idx: schedule.idx,
                 name: null,
@@ -272,7 +272,7 @@ router.get("/searches", async (req, res, next) => {
         });
 
         // 관심사 스케줄을 리스트에 추가
-        interest_schedule.forEach(schedule => {
+        interestSchedule.forEach(schedule => {
             scheduleList.push({
                 idx: schedule.idx,
                 name: schedule.interest,
@@ -351,15 +351,13 @@ router.put("/interest/:idx/notify", async (req, res, next) => {
 // 스케줄 생성
 router.post("/", async (req, res, next) => {
     const { dateTime, contents } = req.body;
-
-     // userId를 직접 설정 (임시 테스트)
-     const userId = 2;
+    const loginUser = req.decoded;
 
     try {
         await psql.query(`
             INSERT INTO calenduck.personal_schedule (user_idx, time, contents)
             VALUES ($1, $2, $3)
-        `, [userId, dateTime, contents]);
+        `, [loginUser, dateTime, contents]);
  
         return res.sendStatus(201);
     }catch(err){
