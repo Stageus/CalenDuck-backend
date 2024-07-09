@@ -95,7 +95,7 @@ router.put("/pw", checkAuth("findPw"), checkValidity({"authField": ["pw"]}), end
 );
 
 //아이디 중복 체크
-router.get("/check-id", checkValidity(), checkDuplicatedId,
+router.get("/check-id", checkValidity({"authField": ["id"]}), checkDuplicatedId,
   async (req, res, next) => {
     return res.sendStatus(201);
   }
