@@ -349,7 +349,7 @@ router.put("/interest/:idx/notify", async (req, res, next) => {
 }) 
 
 // 스케줄 생성
-router.post("/", async (req, res, next) => {
+router.post("/", checkAuth(), async (req, res, next) => {
     const { dateTime, contents } = req.body;
     const loginUser = req.decoded;
 
