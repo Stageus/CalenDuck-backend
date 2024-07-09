@@ -124,7 +124,7 @@ router.get("/details/interest", checkAuth(), async (req, res, next) => {
         let scheduleList = [];
 
         // 관심사 스케줄 불러오기
-        const interest_schedule = await getManyResults(`
+        const interestSchedule = await getManyResults(`
             SELECT interest_schedule.idx, interest_schedule.time, interest_schedule.contents, interest_schedule.priority, interest.interest as name
             FROM calenduck.interest_schedule
             INNER JOIN calenduck.interest ON interest_schedule.interest_idx = interest.idx
@@ -136,12 +136,12 @@ router.get("/details/interest", checkAuth(), async (req, res, next) => {
         `, [year, month, day, interestIdx])
 
         // 스케줄이 없는 경우
-        if (interest_schedule.length === 0) {
+        if (interestSchedule.length === 0) {
             return res.sendStatus(204); 
         }
 
         // 관심사 스케줄을 리스트에 추가
-        interest_schedule.forEach(schedule => {
+        interestSchedule.forEach(schedule => {
             scheduleList.push({
                 idx: schedule.idx,
                 name: schedule.name,
