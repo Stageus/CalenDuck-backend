@@ -366,21 +366,19 @@ router.post("/", checkAuth(), async (req, res, next) => {
 })
 
 // 스케줄 수정
-router.put("/:idx", async (req, res, next) => {
+router.put("/:idx", checkAuth(), async (req, res, next) => {
     const { dateTime, contents } = req.body;
     const { idx } = req.params;
-
-    // userId를 직접 설정 (임시 테스트)
-    const userIdx = 2;
+    const loginUser = req.decoded;
 
     try {
-        const personal_schedule = await psql.query(`
+        const personalSchedule = await psql.query(`
             UPDATE calenduck.personal_schedule
             SET time = $1, contents = $2
             WHERE idx = $3 AND user_idx = $4 
-        `, [dateTime, contents, idx, userIdx]);
+        `, [dateTime, contents, idx, loginUser]);
 
-        if (personal_schedule.length === 0) {
+        if (personalSchedule.length === 0) {
             return res.sendStatus(404);
         }
 
