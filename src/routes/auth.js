@@ -4,9 +4,13 @@ const crypto = require("crypto");
 
 const checkValidity = require("../middlewares/checkValidity");
 
+const { idRegex } = require("../model/constants")  
+const { range } = require("../model/constants");
+
 const { 
     ConflictException,
-    UnauthorizedException 
+    UnauthorizedException, 
+    BadRequestException
 } = require("../model/customException");
 
 const endRequestHandler = require("../modules/endRequestHandler");
@@ -14,20 +18,15 @@ const { getOneResult } = require("../modules/sqlHandler");
 const makeToken = require("../modules/makeToken");
 
 
-router.post("/email", checkValidity, endRequestHandler(async (req, res, next) => {
+router.post("/email", checkValidity({"authField": ["email"]}), endRequestHandler(async (req, res, next) => {
     const { email } = req.body;
-    const min = 100000;
-    const max = 999999;
-    const range = max - min + 1;
 
     const user = await getOneResult(`
       SELECT email FROM calenduck.user 
       WHERE email=$1
-    `, [email] );
+    `, [email]);
 
-    if (user) {
-      return next(new ConflictException());
-    }
+    if (user) return next(new ConflictException());
 
     const redis = require("redis").createClient();
     await redis.connect();
@@ -65,8 +64,12 @@ router.post("/email", checkValidity, endRequestHandler(async (req, res, next) =>
   })
 );
 
-router.post("/check-code", endRequestHandler(async (req, res, next) => {
-  const { email, code = null, pageType, id } = req.body;
+router.post("/check-code", checkValidity({"authField": ["email"], "codeField": ["code"]}), endRequestHandler(async (req, res, next) => {
+  const { email, code, pageType, id } = req.body;
+
+  const validTypes = ["signup", "findId", "findPw"];
+
+  if(!validTypes.includes(pageType)) return next(new BadRequestException());
 
   const redis = require("redis").createClient();
   await redis.connect();
@@ -84,9 +87,13 @@ router.post("/check-code", endRequestHandler(async (req, res, next) => {
         type: pageType 
       } 
 
-    if(pageType == "findPw" && id){
+    if (pageType === "findPw") {
+      if (!idRegex.test(id)) {
+        return next(new BadRequestException());
+      }
       tokenPayload.id = id;
     }
+      
     
     const emailToken = makeToken(tokenPayload);
 

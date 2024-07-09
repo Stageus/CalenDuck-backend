@@ -3,13 +3,15 @@ const router = require("express").Router();
 const notificationSchema = require("../../database/mongooseSchema/notificationSchema");
 
 const checkAuth = require("../middlewares/checkAuth");
+const checkValidity = require("../middlewares/checkValidity");
+
+const { pageSize } = require("../model/constants");
 
 const endRequestHandler = require("../modules/endRequestHandler");
 
-router.get("/", checkAuth, endRequestHandler(async (req, res, next) => {
+router.get("/", checkAuth("login"), checkValidity({"numberField": ["page"]}), endRequestHandler(async (req, res, next) => {
     const loginUser = req.decoded;
     const { page } = req.body;
-    const pageSize = 20;
     const skipAmount = (page - 1) * pageSize;
 
     const notificationList = await notificationSchema
@@ -38,7 +40,7 @@ router.get("/", checkAuth, endRequestHandler(async (req, res, next) => {
   })
 );
 
-router.get("/counts", checkAuth, endRequestHandler(async (req, res, next) => {
+router.get("/counts", checkAuth("login"), endRequestHandler(async (req, res, next) => {
     const loginUser = req.decoded;
 
     const count = await notificationSchema.countDocuments({

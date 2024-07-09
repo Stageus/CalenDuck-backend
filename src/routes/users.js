@@ -16,7 +16,7 @@ const {
 } = require("../model/customException");
 
 //로그인
-router.post("/login", checkValidity(), endRequestHandler(async (req, res, next) => {
+router.post("/login", checkValidity({"authField": ["id", "pw"]}), endRequestHandler(async (req, res, next) => {
     const { id, pw } = req.body;
 
     const loginUser = await getOneResult(`
@@ -62,7 +62,7 @@ router.post("/id/find", checkAuth("findId"), endRequestHandler(async (req, res, 
 );
 
 //비밀번호 찾기
-router.post("/pw/find", checkAuth("findPw"), checkValidity(), endRequestHandler(async (req, res, next) => {
+router.post("/pw/find", checkAuth("findPw"), endRequestHandler(async (req, res, next) => {
     const { email, id } = req.decoded;
 
     const user = await getOneResult(`
@@ -70,7 +70,7 @@ router.post("/pw/find", checkAuth("findPw"), checkValidity(), endRequestHandler(
         FROM calenduck.login CL 
         JOIN calenduck.user CU 
         ON CU.login_idx = CL.idx 
-        WHERE CU.name = $1 AND CU.email = $2 AND CL.id = $3
+        WHERE CU.email = $1 AND CL.id = $2
       `, [email, id]);
 
     if (!user) return next(new UnauthorizedException());
@@ -80,7 +80,7 @@ router.post("/pw/find", checkAuth("findPw"), checkValidity(), endRequestHandler(
 );
 
 //비밀번호 재설정
-router.put("/pw", checkAuth("findPw"), checkValidity(), endRequestHandler(async (req, res, next) => {
+router.put("/pw", checkAuth("findPw"), checkValidity({"authField": ["pw"]}), endRequestHandler(async (req, res, next) => {
     const { pw } = req.body;
     const { email } = req.decoded;
 
@@ -101,8 +101,8 @@ router.get("/check-id", checkValidity(), checkDuplicatedId,
   }
 );
 
-//회원가입
-router.post("/", checkAuth("signUp"), checkValidity(), checkDuplicatedId, endRequestHandler(async (req, res, next) => {
+//회원가입 닉네임 어캐함
+router.post("/", checkAuth("signUp"), checkValidity({"authField": ["id", "pw", "name"]}), checkDuplicatedId, endRequestHandler(async (req, res, next) => {
     const { id, pw, name } = req.body;
     const email = req.decoded.email;
 
@@ -186,7 +186,7 @@ router.get("/interests", checkAuth("login"), endRequestHandler(async (req, res, 
 );
 
 //관심사 추가
-router.post("/interests/:idx", checkAuth("login"), checkValidity(), endRequestHandler(async (req, res, next) => {
+router.post("/interests/:idx", checkAuth("login"), checkValidity({"numberField": ["idx"]}), endRequestHandler(async (req, res, next) => {
     const { idx: interestIdx = null } = req.params;
     const loginUser = req.decoded;
 
@@ -200,7 +200,7 @@ router.post("/interests/:idx", checkAuth("login"), checkValidity(), endRequestHa
 );
 
 //내 관심사 삭제
-router.delete("/interests/:idx", checkAuth("login"), checkValidity(), endRequestHandler(async (req, res, next) => {
+router.delete("/interests/:idx", checkAuth("login"), checkValidity({"numberField": ["idx"]}), endRequestHandler(async (req, res, next) => {
     const { idx: interestIdx = null } = req.params;
     const loginUser = req.decoded;
 
