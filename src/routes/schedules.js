@@ -394,4 +394,23 @@ router.put("/:idx", async (req, res, next) => {
     }
 })
 
+// 스케줄 삭제
+router.delete("/:idx", async (req, res, next) => {
+    const { idx } = req.params;
+
+    // userId를 직접 설정 (임시 테스트)
+    const userIdx = 2;
+
+    try {
+        await psql.query(`
+            DELETE FROM calenduck.personal_schedule
+            WHERE idx = $1 AND user_idx = $2
+        `, [idx, userIdx]);
+
+        return res.sendStatus(201);
+    }catch(err){
+        return next(err);
+    }
+})
+
 module.exports = router;
