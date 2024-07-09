@@ -18,6 +18,14 @@ const RANGE = MAX - MIN + 1;
 // token 발급시간
 const EXPIRESIN = "1h";
 
+// validType
+const SIGNUP = "signup";
+const FINDID = "findId";
+const FINDPW = "findPw";
+const LOGIN = "login";
+const MASTER = "master";
+const MANAGER = "manager";
+
 module.exports = {
     IDREGEX,
     PWREGEX,
@@ -30,5 +38,11 @@ module.exports = {
     MIN,
     MAX,
     RANGE,
-    EXPIRESIN
+    EXPIRESIN,
+    SIGNUP,
+    FINDID,
+    FINDPW,
+    LOGIN,
+    MASTER,
+    MANAGER
 };
