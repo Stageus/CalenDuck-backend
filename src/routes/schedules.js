@@ -112,7 +112,7 @@ router.get("/interest", checkAuth(), async (req, res, next) => {
 })
 
 // 특정 날짜에서 특정 관심사 불러오기
-router.get("/details/interest", async (req, res, next) => {
+router.get("/details/interest", checkAuth(), async (req, res, next) => {
     const { date, interestIdx} = req.query;
 
     try{
@@ -137,7 +137,7 @@ router.get("/details/interest", async (req, res, next) => {
 
         // 스케줄이 없는 경우
         if (interest_schedule.length === 0) {
-            return res.sendStatus(204); // No Content
+            return res.sendStatus(204); 
         }
 
         // 관심사 스케줄을 리스트에 추가
