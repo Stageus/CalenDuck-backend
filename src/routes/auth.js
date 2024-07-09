@@ -94,7 +94,6 @@ router.post("/check-code", checkValidity({"authField": ["email"], "codeField": [
       tokenPayload.id = id;
     }
       
-    
     const emailToken = makeToken(tokenPayload);
 
     res.cookie("access_token", emailToken);
