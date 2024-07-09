@@ -72,7 +72,7 @@ router.get("/", checkAuth(), async (req, res, next) => {
 })
 
 // 특정 년월 특정 관심사 불러오기
-router.get("/interest", async (req, res, next) => {
+router.get("/interest", checkAuth(), async (req, res, next) => {
     const { date, interestIdx } = req.query;
 
     try{
@@ -83,19 +83,19 @@ router.get("/interest", async (req, res, next) => {
         let scheduleList = Array.from({ length: 31 }, () => []);
 
         // 관심사 스케줄 가져오기
-        const interest_schedule = await getManyResults(`
+        const interestSchedule = await getManyResults(`
             SELECT COUNT(*) AS count, EXTRACT(DAY FROM time) as day, contents as interestName
             FROM calenduck.interest_schedule
             WHERE EXTRACT(YEAR FROM time) = $1 AND EXTRACT(MONTH FROM time) = $2 AND interest_idx = $3
             GROUP BY EXTRACT(DAY FROM time), contents
         `, [year, month, interestIdx]);
 
-        if ( interest_schedule === 0 ) {
+        if ( interestSchedule === 0 ) {
             return res.sendStatus(204); 
         }
     
         // 관심사 스케줄을 날짜별로 리스트에 추가
-        interest_schedule.forEach(schedule => {
+        interestSchedule.forEach(schedule => {
             const day = schedule.day - 1; // index값이 day 값은 같게 하기 위해서 1을 뺌
             scheduleList[day].push({
                 interestName: schedule.interestname,
