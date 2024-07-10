@@ -18,7 +18,7 @@ const endRequestHandler = require("../modules/endRequestHandler");
 // 관심사 목록 불러오기
 router.get("/category", checkAuth("login"), endRequestHandler(async (req, res, next) => {
     const askCategoryList = await getManyResults(`
-        SELECT idx, name
+        SELECT idx AS "categoryIdx", name
         FROM calenduck.ask_category
         WHERE is_deleted = false
         ORDER BY idx ASC
