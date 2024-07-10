@@ -101,9 +101,9 @@ router.get("/check-id", checkValidity({"authField": ["id"]}), checkDuplicatedId,
   }
 );
 
-//회원가입 닉네임 어캐함
-router.post("/", checkAuth("signUp"), checkValidity({"authField": ["id", "pw", "name"]}), checkDuplicatedId, endRequestHandler(async (req, res, next) => {
-    const { id, pw, name } = req.body;
+//회원가입
+router.post("/", checkAuth("signUp"), checkValidity({"authField": ["id", "pw", "nickname"]}), checkDuplicatedId, endRequestHandler(async (req, res, next) => {
+    const { id, pw, nickname } = req.body;
     const email = req.decoded.email;
 
     const psqlClient = await psql.connect();
@@ -118,16 +118,16 @@ router.post("/", checkAuth("signUp"), checkValidity({"authField": ["id", "pw", "
       const loginIdx = insertLoginQueryResult.rows[0].idx;
 
       await psqlClient.query(`
-        INSERT INTO calenduck.user(login_idx, name, email) 
+        INSERT INTO calenduck.user(login_idx, nickname, email) 
         VALUES($1, $2, $3)
-      `, [loginIdx, name, email]);
+      `, [loginIdx, nickname, email]);
 
       await psqlClient.query("COMMIT");
 
       return res.sendStatus(201);
     } catch (err) {
       await psqlClient.query("ROLLBACK");
-      return next(err);
+      throw err;
     } finally {
       psqlClient.release();
     }
@@ -160,54 +160,6 @@ router.delete("/", checkAuth("login"), endRequestHandler(async (req, res, next) 
         WHERE idx = $1
       `,[kakaoIdx]);
     }
-
-    return res.sendStatus(201);
-  })
-);
-
-//내 관심사 불러오기
-router.get("/interests", checkAuth("login"), endRequestHandler(async (req, res, next) => {
-    const loginUser = req.decoded;
-
-    const interestList = await getManyResults(`
-      SELECT CI.interest, CI.idx FROM calenduck.user_interest CUI
-      JOIN calenduck.interest CI
-      ON CUI.interest_idx = CI.idx
-      WHERE CUI.user_idx = $1
-      ORDER BY interest ASC
-    `, [loginUser.idx]);
-
-    if (!interestList || interestList.length === 0) return res.sendStatus(204);
-
-    return res.status(200).send({
-      list: interestList,
-    });
-  })
-);
-
-//관심사 추가
-router.post("/interests/:idx", checkAuth("login"), checkValidity({"numberField": ["idx"]}), endRequestHandler(async (req, res, next) => {
-    const { idx: interestIdx = null } = req.params;
-    const loginUser = req.decoded;
-
-    await psql.query(`
-      INSERT INTO calenduck.user_interest(user_idx, interest_idx) 
-      VALUES($1, $2)
-    `, [loginUser.idx, interestIdx]);
-
-    return res.sendStatus(201);
-  })
-);
-
-//내 관심사 삭제
-router.delete("/interests/:idx", checkAuth("login"), checkValidity({"numberField": ["idx"]}), endRequestHandler(async (req, res, next) => {
-    const { idx: interestIdx = null } = req.params;
-    const loginUser = req.decoded;
-
-    await psql.query(`
-      DELETE FROM calenduck.user_interest 
-      WHERE user_idx = $1 AND interest_idx= $2
-    `, [loginUser.idx, interestIdx]);
 
     return res.sendStatus(201);
   })
