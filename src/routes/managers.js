@@ -3,6 +3,9 @@ const router = require("express").Router();
 
 const psql = require("../../database/connect/postgre");
 
+const checkValidity = require("../middlewares/checkValidity");
+const checkAuth = require("../middlewares/checkAuth");
+
 const { 
     NotFoundException 
 } = require("../model/customException");
@@ -10,6 +13,7 @@ const {
 const { 
     getOneResult 
 } = require("../modules/sqlHandler");
+const endRequestHandler = require("../modules/endRequestHandler");
 
 // 관심사 스케줄 생성
 router.post("/schedules/interests", async (req, res) => {
