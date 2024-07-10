@@ -17,7 +17,7 @@ const endRequestHandler = require("../modules/endRequestHandler");
 // 일반 계정 목록 불러오기 (general)
 router.get("/users", checkAuth("master"), endRequestHandler(async (req, res, next) => {
     const userList = await getManyResults(`
-        SELECT idx, nickname
+        SELECT idx AS "userIdx", nickname AS "userNickname"
         FROM calenduck.user
         ORDER BY nickname ASC
     `);
@@ -34,7 +34,7 @@ router.get("/users", checkAuth("master"), endRequestHandler(async (req, res, nex
 // 관심사 목록 불러오기 (배정 받은 것 제외)
 router.get("/interests", checkAuth("master"), endRequestHandler(async (req, res, next) => {
     const interestList = await getManyResults(`
-        SELECT idx, interest
+        SELECT idx AS "interestIdx", interest AS "interestName"
         FROM calenduck.interest
         WHERE is_assigned=false
         ORDER BY interest ASC
@@ -52,7 +52,7 @@ router.get("/interests", checkAuth("master"), endRequestHandler(async (req, res,
 // 관심사 계정 목록 불러오기 (manager)
 router.get("/managers", checkAuth("master"), endRequestHandler(async (req, res, next) => {
     const managerList = await getManyResults(`
-        SELECT CM.user_idx, CU.nickname, CM.interest_idx, CI.interest
+        SELECT CM.user_idx AS "managerIdx", CU.nickname AS "managerNickname", CM.interest_idx AS "interetIdx", CI.interest
         FROM calenduck.manager CM
         JOIN calenduck.user CU
         ON CM.user_idx = CU.idx
@@ -74,7 +74,7 @@ router.get("/asks", checkAuth("master"), checkValidity({ "numberField": ["catego
     const { categoryIdx } = req.query;
 
     const askList = await getManyResults(`
-        SELECT CA.idx, CU.nickname, CA.title, CA.contents, CA.reply, CA.created_at
+        SELECT CA.idx AS "askIdx", CU.nickname, CA.title, CA.contents, CA.reply, CA.created_at As "createdAt"
         FROM calenduck.ask CA
         JOIN calenduck.user CU
         ON CA.user_idx = CU.idx
