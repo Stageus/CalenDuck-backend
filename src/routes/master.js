@@ -193,7 +193,7 @@ router.put("/interest/:idx", checkAuth("master"), checkValidity({ "stringField":
 }))
 
 // 관심사 연결 수정
-router.put("/managers/assignment", checkValidity({ "numberField": ["beforeManagerIdx", "afterManagerIdx", "interestIdx"] }), endRequestHandler(async (req, res, next) => {
+router.put("/managers/assignment", checkAuth("master"), checkValidity({ "numberField": ["beforeManagerIdx", "afterManagerIdx", "interestIdx"] }), endRequestHandler(async (req, res, next) => {
     const { beforeManagerIdx, afterManagerIdx, interestIdx } = req.body;
 
     const managerAndInterest = await getOneResult(`
