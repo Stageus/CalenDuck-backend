@@ -25,7 +25,7 @@ router.get("/", checkAuth("login"), checkValidity({"numberField": ["page"]}), en
       .skip(skipAmount)
       .limit(pageSize);
 
-    if (!notificationList) {
+    if (!notificationList || notificationList.length === 0) {
       return res.sendStatus(204);
     }
 
