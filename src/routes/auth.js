@@ -61,7 +61,7 @@ router.post("/email", checkValidity({"authField": ["email"]}), endRequestHandler
 
       return res.sendStatus(201);
     } catch (err) {
-      return next(err);
+      throw next(err);
     } finally {
       await redis.disconnect();
     }
