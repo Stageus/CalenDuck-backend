@@ -6,7 +6,6 @@ const errorHandler = require("./src/middlewares/errorHandler");
 // const interceptor = require("./src/middlewares/interceptor");
 const notFoundApi = require("./src/middlewares/notFoundApi");
 const limiter = require("./src/middlewares/apiLimiter");
-const logging = require('./src/modules/logging');
 
 const authApi = require("./src/routes/auth");
 // const managersApi = require("./src/routes/managers");
@@ -30,7 +29,6 @@ app.use("/auth", authApi);
 app.use("/users", usersApi);
 // app.use("/", utillsApi);
 
-app.use(logging); 
 // app.use(interceptor);
 app.use(notFoundApi);
 app.use(errorHandler);
