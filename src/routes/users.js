@@ -16,7 +16,7 @@ const {
 } = require("../model/customException");
 
 //로그인
-router.post("/login", checkValidity(), endRequestHandler(async (req, res, next) => {
+router.post("/login", checkValidity({"authField": ["id", "pw"]}), endRequestHandler(async (req, res, next) => {
     const { id, pw } = req.body;
 
     const loginUser = await getOneResult(`
@@ -62,7 +62,7 @@ router.post("/id/find", checkAuth("findId"), endRequestHandler(async (req, res, 
 );
 
 //비밀번호 찾기
-router.post("/pw/find", checkAuth("findPw"), checkValidity(), endRequestHandler(async (req, res, next) => {
+router.post("/pw/find", checkAuth("findPw"), endRequestHandler(async (req, res, next) => {
     const { email, id } = req.decoded;
 
     const user = await getOneResult(`
@@ -70,7 +70,7 @@ router.post("/pw/find", checkAuth("findPw"), checkValidity(), endRequestHandler(
         FROM calenduck.login CL 
         JOIN calenduck.user CU 
         ON CU.login_idx = CL.idx 
-        WHERE CU.name = $1 AND CU.email = $2 AND CL.id = $3
+        WHERE CU.email = $1 AND CL.id = $2
       `, [email, id]);
 
     if (!user) return next(new UnauthorizedException());
@@ -80,7 +80,7 @@ router.post("/pw/find", checkAuth("findPw"), checkValidity(), endRequestHandler(
 );
 
 //비밀번호 재설정
-router.put("/pw", checkAuth("findPw"), checkValidity(), endRequestHandler(async (req, res, next) => {
+router.put("/pw", checkAuth("findPw"), checkValidity({"authField": ["pw"]}), endRequestHandler(async (req, res, next) => {
     const { pw } = req.body;
     const { email } = req.decoded;
 
@@ -95,15 +95,15 @@ router.put("/pw", checkAuth("findPw"), checkValidity(), endRequestHandler(async 
 );
 
 //아이디 중복 체크
-router.get("/check-id", checkValidity(), checkDuplicatedId,
+router.get("/check-id", checkValidity({"authField": ["id"]}), checkDuplicatedId,
   async (req, res, next) => {
     return res.sendStatus(201);
   }
 );
 
 //회원가입
-router.post("/", checkAuth("signUp"), checkValidity(), checkDuplicatedId, endRequestHandler(async (req, res, next) => {
-    const { id, pw, name } = req.body;
+router.post("/", checkAuth("signUp"), checkValidity({"authField": ["id", "pw", "nickname"]}), checkDuplicatedId, endRequestHandler(async (req, res, next) => {
+    const { id, pw, nickname } = req.body;
     const email = req.decoded.email;
 
     const psqlClient = await psql.connect();
@@ -118,16 +118,16 @@ router.post("/", checkAuth("signUp"), checkValidity(), checkDuplicatedId, endReq
       const loginIdx = insertLoginQueryResult.rows[0].idx;
 
       await psqlClient.query(`
-        INSERT INTO calenduck.user(login_idx, name, email) 
+        INSERT INTO calenduck.user(login_idx, nickname, email) 
         VALUES($1, $2, $3)
-      `, [loginIdx, name, email]);
+      `, [loginIdx, nickname, email]);
 
       await psqlClient.query("COMMIT");
 
       return res.sendStatus(201);
     } catch (err) {
       await psqlClient.query("ROLLBACK");
-      return next(err);
+      throw err;
     } finally {
       psqlClient.release();
     }
@@ -160,54 +160,6 @@ router.delete("/", checkAuth("login"), endRequestHandler(async (req, res, next) 
         WHERE idx = $1
       `,[kakaoIdx]);
     }
-
-    return res.sendStatus(201);
-  })
-);
-
-//내 관심사 불러오기
-router.get("/interests", checkAuth("login"), endRequestHandler(async (req, res, next) => {
-    const loginUser = req.decoded;
-
-    const interestList = await getManyResults(`
-      SELECT CI.interest, CI.idx FROM calenduck.user_interest CUI
-      JOIN calenduck.interest CI
-      ON CUI.interest_idx = CI.idx
-      WHERE CUI.user_idx = $1
-      ORDER BY interest ASC
-    `, [loginUser.idx]);
-
-    if (!interestList || interestList.length === 0) return res.sendStatus(204);
-
-    return res.status(200).send({
-      list: interestList,
-    });
-  })
-);
-
-//관심사 추가
-router.post("/interests/:idx", checkAuth("login"), checkValidity(), endRequestHandler(async (req, res, next) => {
-    const { idx: interestIdx = null } = req.params;
-    const loginUser = req.decoded;
-
-    await psql.query(`
-      INSERT INTO calenduck.user_interest(user_idx, interest_idx) 
-      VALUES($1, $2)
-    `, [loginUser.idx, interestIdx]);
-
-    return res.sendStatus(201);
-  })
-);
-
-//내 관심사 삭제
-router.delete("/interests/:idx", checkAuth("login"), checkValidity(), endRequestHandler(async (req, res, next) => {
-    const { idx: interestIdx = null } = req.params;
-    const loginUser = req.decoded;
-
-    await psql.query(`
-      DELETE FROM calenduck.user_interest 
-      WHERE user_idx = $1 AND interest_idx= $2
-    `, [loginUser.idx, interestIdx]);
 
     return res.sendStatus(201);
   })
