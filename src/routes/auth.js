@@ -5,7 +5,7 @@ const crypto = require("crypto");
 const checkValidity = require("../middlewares/checkValidity");
 
 const { idRegex } = require("../model/constants")  
-const { range } = require("../model/constants");
+const { range, min } = require("../model/constants");
 
 const { 
     ConflictException,
@@ -19,14 +19,18 @@ const makeToken = require("../modules/makeToken");
 
 
 router.post("/email", checkValidity({"authField": ["email"]}), endRequestHandler(async (req, res, next) => {
-    const { email } = req.body;
+    const { email, checkDuplicated } = req.body;
+    
+    if(typeof checkDuplicated !== "boolean") return next(new BadRequestException());
 
-    const user = await getOneResult(`
-      SELECT email FROM calenduck.user 
-      WHERE email=$1
-    `, [email]);
-
-    if (user) return next(new ConflictException());
+    if (checkDuplicated) {
+      const user = await getOneResult(`
+        SELECT 1 FROM calenduck.user 
+        WHERE email=$1
+      `, [email]);
+  
+      if (user) return next(new ConflictException());
+    }
 
     const redis = require("redis").createClient();
     await redis.connect();
