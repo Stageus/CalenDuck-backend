@@ -4,8 +4,7 @@ const crypto = require("crypto");
 
 const checkValidity = require("../middlewares/checkValidity");
 
-const { idRegex } = require("../model/constants")  
-const { range, min } = require("../model/constants");
+const { IDREGEX, RANGE, MIN } = require("../constants");
 
 const { 
     ConflictException,
@@ -47,7 +46,7 @@ router.post("/email", checkValidity({"authField": ["email"]}), endRequestHandler
       const array = new Uint32Array(1);
       crypto.getRandomValues(array);
 
-      const code = (array[0] % range) + min;
+      const code = (array[0] % RANGE) + MIN;
 
       redis.set(email, code);
       redis.expire(email, 3 * 60);
@@ -61,7 +60,7 @@ router.post("/email", checkValidity({"authField": ["email"]}), endRequestHandler
 
       return res.sendStatus(201);
     } catch (err) {
-      return next(err);
+      throw next(err);
     } finally {
       await redis.disconnect();
     }
@@ -92,7 +91,7 @@ router.post("/check-code", checkValidity({"authField": ["email"], "codeField": [
       } 
 
     if (pageType === "findPw") {
-      if (!idRegex.test(id)) {
+      if (!IDREGEX.test(id)) {
         return next(new BadRequestException());
       }
       tokenPayload.id = id;

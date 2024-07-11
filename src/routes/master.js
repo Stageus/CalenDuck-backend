@@ -17,8 +17,9 @@ const endRequestHandler = require("../modules/endRequestHandler");
 // 일반 계정 목록 불러오기 (general)
 router.get("/users", checkAuth("master"), endRequestHandler(async (req, res, next) => {
     const userList = await getManyResults(`
-        SELECT idx, nickname
+        SELECT idx AS "userIdx", nickname AS "userNickname"
         FROM calenduck.user
+        WHERE role = 'general'
         ORDER BY nickname ASC
     `);
 
@@ -34,7 +35,7 @@ router.get("/users", checkAuth("master"), endRequestHandler(async (req, res, nex
 // 관심사 목록 불러오기 (배정 받은 것 제외)
 router.get("/interests", checkAuth("master"), endRequestHandler(async (req, res, next) => {
     const interestList = await getManyResults(`
-        SELECT idx, interest
+        SELECT idx AS "interestIdx", interest AS "interestName"
         FROM calenduck.interest
         WHERE is_assigned=false
         ORDER BY interest ASC
@@ -52,7 +53,7 @@ router.get("/interests", checkAuth("master"), endRequestHandler(async (req, res,
 // 관심사 계정 목록 불러오기 (manager)
 router.get("/managers", checkAuth("master"), endRequestHandler(async (req, res, next) => {
     const managerList = await getManyResults(`
-        SELECT CM.user_idx, CU.nickname, CM.interest_idx, CI.interest
+        SELECT CM.user_idx AS "managerIdx", CU.nickname AS "managerNickname", CM.interest_idx AS "interetIdx", CI.interest
         FROM calenduck.manager CM
         JOIN calenduck.user CU
         ON CM.user_idx = CU.idx
@@ -74,7 +75,7 @@ router.get("/asks", checkAuth("master"), checkValidity({ "numberField": ["catego
     const { categoryIdx } = req.query;
 
     const askList = await getManyResults(`
-        SELECT CA.idx, CU.nickname, CA.title, CA.contents, CA.reply, CA.created_at
+        SELECT CA.idx AS "askIdx", CU.nickname, CA.title, CA.contents, CA.reply, CA.created_at As "createdAt"
         FROM calenduck.ask CA
         JOIN calenduck.user CU
         ON CA.user_idx = CU.idx
@@ -192,80 +193,47 @@ router.put("/interest/:idx", checkAuth("master"), checkValidity({ "stringField":
 }))
 
 // 관심사 연결 수정
-router.put("/managers/assignment", checkAuth("master"), checkValidity({ "numberField": ["beforeManagerIdx", "afterManagerIdx", "afterInterestIdx"] }), endRequestHandler(async (req, res, next) => {
-    const { beforeManagerIdx, afterManagerIdx, afterInterestIdx } = req.body;
+router.put("/managers/assignment", checkAuth("master"), checkValidity({ "numberField": ["beforeManagerIdx", "afterManagerIdx", "interestIdx"] }), endRequestHandler(async (req, res, next) => {
+    const { beforeManagerIdx, afterManagerIdx, interestIdx } = req.body;
 
-    const interest = await getOneResult(`
-        SELECT 1 FROM calenduck.interest
-        WHERE idx = $1
-    `, [afterInterestIdx]); // 수정하려는 관심사가 존재하는지 확인
+    const managerAndInterest = await getOneResult(`
+        SELECT 1 FROM calenduck.manager
+        WHERE user_idx = $1 AND interest_idx = $2
+    `, [beforeManagerIdx, interestIdx]); // 수정하려는 row(manager와 interest)가 존재하는지 확인
 
-    if (!interest) {
+    if (!managerAndInterest) {
         return next(new NotFoundException());
     }
 
-    const userList = await getManyResults(`
+    const user = await getOneResult(`
         SELECT 1
         FROM calenduck.user
-        WHERE idx IN($1, $2)    
-    `, [beforeManagerIdx, afterManagerIdx]);
+        WHERE idx = $1    
+    `, [afterManagerIdx]); // 수정되는 manager가 존재하는지 확인
 
-    if (userList.length !== 2) {
+    if (!user) {
         return next(new NotFoundException());
     }
 
-    const manager = await getOneResult(`
-        SELECT interest_idx
-        FROM calenduck.manager
-        WHERE user_idx = $1    
-    `, [beforeManagerIdx]);
-
-    if (!manager) {
-        return next(new NotFoundException());
-    }
-
-    const beforeInterestIdx = manager.interest_idx;
-    console.log(beforeInterestIdx)
-    // const managerList = await getManyResults(`
-    //     SELECT CM.interest_idx FROM calenduck.user CU
-    //     CROSS JOIN calenduck.manager CM
-    //     WHERE CU.role = 'general' AND CU.idx IN($1, $2)
-    // `, [beforeManagerIdx, afterManagerIdx]); // 기존 관심사 계정과 수정하려는 관심사 계정이 존재하는지 확인
-    // console.log(managerList);
-
-    // if (managerList.length === 0) {
-    //     return next(new NotFoundException());
-    // }
-
-    // const beforeInterestIdx = managerList[0].interest_idx;
-    // console.log(beforeInterestIdx);
     const psqlClient = await psql.connect();
 
-    if (beforeInterestIdx === afterInterestIdx) { // 기존 관심사와 수정하려는 관심사가 동일 할 때,
-        await psql.query(`
-            UPDATE calenduck.manager
-            SET user_idx = $1
-            WHERE user_idx = $2
-        `, [afterManagerIdx, beforeManagerIdx]);
-    } else { // 기존 관심사와 수정하려는 관심사가 동일하지 않을 때
-        await psqlClient.query("BEGIN");
+    await psqlClient.query("BEGIN");
 
-        await psqlClient.query(`
-            UPDATE calenduck.manager
-            SET user_idx = $1, interest_idx = $2
-            WHERE user_idx = $3            
-        `, [afterManagerIdx, afterInterestIdx, beforeManagerIdx]);
-        await psqlClient.query(`
-            UPDATE calenduck.interest
-            SET is_assigned = CASE
-            WHEN idx = $1 THEN false
-            WHEN idx = $2 THEN true
-            END
-            WHERE idx IN($3, $4)
-        `, [beforeInterestIdx, afterInterestIdx, beforeInterestIdx, afterInterestIdx]);
+    await psqlClient.query(`
+        UPDATE calenduck.manager
+        SET user_idx = $1
+        WHERE interest_idx = $2            
+    `, [afterManagerIdx, interestIdx]);
+    await psqlClient.query(`
+        UPDATE calenduck.user
+        SET role = CASE
+        WHEN idx = $1 THEN 'general'::role
+        WHEN idx = $2 THEN 'manager'::role
+        END
+        WHERE idx IN($3, $4)
+    `, [beforeManagerIdx, afterManagerIdx, beforeManagerIdx, afterManagerIdx]);
 
-        await psqlClient.query("COMMIT");
-    }
+    await psqlClient.query("COMMIT");
 
     return res.sendStatus(201);
 }))

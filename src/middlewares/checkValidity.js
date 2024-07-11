@@ -1,13 +1,13 @@
 const { BadRequestException } = require("../model/customException");
 
 const {
-    idRegex,
-    pwRegex,
-    emailRegex,
-    nameRegex,
-    whitespaceRegex,
-    paramRegex,
-    codeRegex
+    IDREGEX,
+    PWREGEX,
+    EMAILREGEX,
+    NICKNAMEREGEX,
+    WHITESPACEREGEX,
+    PARAMREGEX,
+    CODEREGEX
 } = require("../constants");
 
 /**
@@ -45,10 +45,10 @@ const checkValidity = (data) => {
                 }
 
                 if (typeKey === "stringField") {
-                    req[source][item] = value.replace(whitespaceRegex, ' ');
+                    req[source][item] = value.replace(WHITESPACEREGEX, ' ');
                 }
                 if (typeKey === "numberField") {
-                    if (!paramRegex.test(value)) {
+                    if (!PARAMREGEX.test(value)) {
                         return next(new BadRequestException());
                     }
 
@@ -56,10 +56,10 @@ const checkValidity = (data) => {
                 }
                 if (typeKey === "authField") {
                     const regexObj = {
-                        "id": idRegex,
-                        "pw": pwRegex,
-                        "email": emailRegex,
-                        "nickname": nameRegex
+                        "id": IDREGEX,
+                        "pw": PWREGEX,
+                        "email": EMAILREGEX,
+                        "nickname": NICKNAMEREGEX
                     }
 
                     if (item in regexObj && !regexObj[item].test(value)) {
@@ -67,7 +67,7 @@ const checkValidity = (data) => {
                     }
                 }
                 if (typeKey === "codeField") {
-                    if (!codeRegex.test(value)) {
+                    if (!CODEREGEX.test(value)) {
                         return next(new BadRequestException());
                     }
                 }
