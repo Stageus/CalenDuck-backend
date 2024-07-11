@@ -36,8 +36,8 @@ const dailyUpdator = async() => {
 
     const interestSchedules = await getManyResults(`
         SELECT CI.interest_name, CIS.contents
-        FROM calenduck.interest_schedule_priority CISP
-        JOIN calenduck.interest_schedule CIS ON CIS.idx = CISP.interest_schedule_idx
+        FROM calenduck.interest_priority CIP
+        JOIN calenduck.interest_schedule CIS ON CIS.idx = CIP.interest_schedule_idx
         JOIN calenduck.interest CI ON CIS.interest_idx = CI.idx
         WHERE CIS.time >= $1 AND CIS.time <=$2
     `, [startOfTomorrow, endOfTomorrow]);
