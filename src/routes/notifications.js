@@ -5,10 +5,9 @@ const notificationSchema = require("../../database/mongooseSchema/notificationSc
 const checkAuth = require("../middlewares/checkAuth");
 const checkValidity = require("../middlewares/checkValidity");
 
-const { pageSize } = require("../model/constants");
+const { pageSize } = require("../constants");
 
 const endRequestHandler = require("../modules/endRequestHandler");
-const makeNotification = require("../modules/makeNotification");
 
 router.get("/", checkAuth("login"), checkValidity({"numberField": ["page"]}), endRequestHandler(async (req, res, next) => {
     const loginUser = req.decoded;
@@ -58,23 +57,5 @@ router.get("/counts", checkAuth("login"), endRequestHandler(async (req, res, nex
     });
   })
 );
-
-router.post("/", endRequestHandler(async (req, res, next) =>{
-  makeNotification(14, "import", {
-    contents: "내용"
-  })
-  makeNotification(14, "import", {
-    contents: "내용",
-    interest: "미축"
-  })
-  makeNotification(14, "manager", {
-    interest: "미축"
-  })
-  makeNotification(14, "reply", {
-    title: "제목",
-    reply: "답변"
-  })
-  res.sendStatus(201)
-}))
 
 module.exports = router;

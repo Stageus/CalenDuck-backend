@@ -4,8 +4,7 @@ const crypto = require("crypto");
 
 const checkValidity = require("../middlewares/checkValidity");
 
-const { idRegex } = require("../model/constants")  
-const { range, min } = require("../model/constants");
+const { idRegex, range, min } = require("../constants");
 
 const { 
     ConflictException,
