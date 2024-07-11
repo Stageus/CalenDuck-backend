@@ -1,6 +1,7 @@
 const router = require("express").Router();
 
 const checkAuth = require("../middlewares/checkAuth");
+const checkValidity = require("../middlewares/checkValidity");
 
 const {
     getManyResults
@@ -10,7 +11,7 @@ const endRequestHandler = require("../modules/endRequestHandler");
 // 관심사 목록 불러오기
 router.get("/all", checkAuth("login"), endRequestHandler(async (req, res, next) => {
     const interestList = await getManyResults(`
-        SELECT idx, interest
+        SELECT idx AS "interestIdx", interest AS "interestName"
         FROM calenduck.interest
         ORDER BY idx ASC
     `);
