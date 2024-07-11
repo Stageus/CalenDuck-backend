@@ -14,9 +14,8 @@ const endRequestHandler = (requestHandler) => {
     try {
       await requestHandler(req, res, next);
     } catch (err) {
-      console.log(err);
-      if (err.code === 23503) next(new NotFoundException());
-      if (err.code === 23505) next(new ConflictException());
+      if (err.code === "23503") next(new NotFoundException());
+      if (err.code === "23505") next(new ConflictException());
 
       next(err);
     }

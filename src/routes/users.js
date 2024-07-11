@@ -101,7 +101,7 @@ router.get("/check-id", checkValidity({"authField": ["id"]}), checkDuplicatedId,
 );
 
 //회원가입
-router.post("/", checkAuth("signUp"), checkValidity({"authField": ["id", "pw", "nickname"]}), checkDuplicatedId, endRequestHandler(async (req, res, next) => {
+router.post("/", checkAuth("signup"), checkValidity({"authField": ["id", "pw", "nickname"]}), checkDuplicatedId, endRequestHandler(async (req, res, next) => {
     const { id, pw, nickname } = req.body;
     const email = req.decoded.email;
 

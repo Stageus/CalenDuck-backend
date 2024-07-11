@@ -25,7 +25,7 @@ router.get("/", checkAuth("login"), checkValidity({"numberField": ["page"]}), en
             reply: "$data.reply",
             _id: 0
           }}
-        ]).sort({ created_at: "desc" })
+        ]).sort({ date: "desc" })
           .skip(skipAmount)
           .limit(PAGESIZE);
 
