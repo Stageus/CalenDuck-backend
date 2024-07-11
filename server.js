@@ -1,5 +1,7 @@
 const express = require("express");
+const cors = require("cors");
 require("dotenv").config();
+
 const mongoose = require("./database/connect/mongodb");
 const cookieParser = require("cookie-parser");
 const errorHandler = require("./src/middlewares/errorHandler");
@@ -17,7 +19,11 @@ const interestsApi = require("./src/routes/interests");
 
 const app = express();
 const port = process.env.HTTP_PORT;
+
 app.use(express.json());
+app.use(cors({
+  origin: ["http://calenduck.site", "https://calenduck.site", "https://d2b6dw8a7unc3s.cloudfront.net/", "http://d2b6dw8a7unc3s.cloudfront.net/"]
+}))
 mongoose();
 app.use(cookieParser());
 app.use(limiter);
