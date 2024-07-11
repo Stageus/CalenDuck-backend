@@ -1,5 +1,4 @@
 const router = require("express").Router();
-const jwt = require("jsonwebtoken");
 
 const psql = require("../../database/connect/postgre");
 
@@ -9,7 +8,7 @@ const checkAuth = require("../middlewares/checkAuth");
 
 const endRequestHandler = require("../modules/endRequestHandler");
 const makeToken = require("../modules/makeToken");
-const { getOneResult, getManyResults } = require("../modules/sqlHandler");
+const { getOneResult } = require("../modules/sqlHandler");
 
 const {
   UnauthorizedException,
@@ -71,7 +70,7 @@ router.post("/pw/find", checkAuth("findPw"), endRequestHandler(async (req, res, 
         JOIN calenduck.user CU 
         ON CU.login_idx = CL.idx 
         WHERE CU.email = $1 AND CL.id = $2
-      `, [email, id]);
+    `, [email, id]);
 
     if (!user) return next(new UnauthorizedException());
 

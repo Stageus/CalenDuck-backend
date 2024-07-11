@@ -8,10 +8,10 @@ const notFoundApi = require("./src/middlewares/notFoundApi");
 const limiter = require("./src/middlewares/apiLimiter");
 
 const authApi = require("./src/routes/auth");
-// const managersApi = require("./src/routes/managers");
-// const masterApi = require("./src/routes/master");
-// const notificationsApi = require("./src/routes/notifications");
-// const schedulesApi = require("./src/routes/schedules");
+const managersApi = require("./src/routes/managers");
+const masterApi = require("./src/routes/master");
+const notificationsApi = require("./src/routes/notifications");
+const schedulesApi = require("./src/routes/schedules");
 const usersApi = require("./src/routes/users");
 
 const app = express();
@@ -22,12 +22,11 @@ app.use(cookieParser());
 app.use(limiter);
 
 app.use("/auth", authApi);
-// app.use("/managers", managersApi);
-// app.use("/master", masterApi);
-// app.use("/notifications", notificationsApi);
-// app.use("/schedules", schedulesApi);
+app.use("/managers", managersApi);
+app.use("/master", masterApi);
+app.use("/notifications", notificationsApi);
+app.use("/schedules", schedulesApi);
 app.use("/users", usersApi);
-// app.use("/", utillsApi);
 
 // app.use(interceptor);
 app.use(notFoundApi);
