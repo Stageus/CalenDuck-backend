@@ -5,6 +5,15 @@ const {
     UnauthorizedException
 } = require("../model/customException");
 
+const {
+    SIGNUP,
+    FINDID,
+    FINDPW,
+    LOGIN,
+    MASTER,
+    MANAGER
+} = require("../constants");
+
 /**
  * @param {"signup" | "findId" | "findPw" | "login" | "master" | "manager"} type
  */
@@ -17,15 +26,15 @@ const checkAuth = (type = null) => {
             const jwtData = jwt.verify(token, process.env.TOKEN_SECRET_KEY);
             req.decoded = jwtData;
 
-            const validTypes = ["signup", "findId", "findPw", "login"];
+            const validTypes = [SIGNUP, FINDID, FINDPW, LOGIN];
 
             if (validTypes.includes(type) && jwtData.type !== type) {
                 return next(new UnauthorizedException());
             }
-            if (type === "master" && jwtData.rank !== "master") {
+            if (type === MASTER && jwtData.rank !== MASTER) {
                 return next(new ForbiddenException());
             }
-            if (type === "manager" && jwtData.rank !== "manager") {
+            if (type === MANAGER && jwtData.rank !== MANAGER) {
                 return next(new ForbiddenException());
             }
             return next();
