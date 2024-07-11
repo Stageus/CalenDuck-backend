@@ -9,6 +9,7 @@ const { PAGESIZE } = require("../constants");
 
 const endRequestHandler = require("../modules/endRequestHandler");
 
+//알림 목록 불러오기
 router.get("/", checkAuth("login"), checkValidity({"numberField": ["page"]}), endRequestHandler(async (req, res, next) => {
     const loginUser = req.decoded;
     const { page } = req.body;
@@ -44,6 +45,7 @@ router.get("/", checkAuth("login"), checkValidity({"numberField": ["page"]}), en
   })
 );
 
+//신규 알림 개수 불러오기
 router.get("/counts", checkAuth("login"), endRequestHandler(async (req, res, next) => {
     const loginUser = req.decoded;
 
