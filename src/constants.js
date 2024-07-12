@@ -6,6 +6,8 @@ const NICKNAMEREGEX = /^[a-zA-Zㄱ-ㅎ가-힣]{2,32}$/;
 const WHITESPACEREGEX = /[\r\n\t ]+/g;
 const PARAMREGEX = /^(?!0)[\d]+$/
 const CODEREGEX = /^[\d]{6}$/;
+const FULLDATEREGEX = /^(?:(?:20(?:2[\d]|30)(?:(?:0[13578]|1[02])(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)(?:0[1-9]|[12]\d|30)|02(?:0[1-9]|1\d|2[0-8])))|(?:202[48])0229)$/
+const YEARMONTHREGEX = /^20(?:2[\d]|30)(?:0[1-9]|1[0-2])$/
 
 // /notification
 const PAGESIZE = 20;
