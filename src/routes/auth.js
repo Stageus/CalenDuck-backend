@@ -37,6 +37,8 @@ router.post("/email", checkValidity({"authField": ["email"]}), endRequestHandler
     try {
       const transporter = nodemailer.createTransport({
         service: process.env.EMAIL_SERVICE,
+        port: process.env.MAILER_PORT,
+        secure: true,
         auth: {
           user: process.env.USER,
           pass: process.env.PASSWORD,
