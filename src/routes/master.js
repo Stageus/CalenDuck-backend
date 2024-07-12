@@ -145,8 +145,8 @@ router.post("/users/permission", checkAuth("master"), checkValidity({ "stringFie
 }))
 
 // 문의 답변 작성
-router.post("/users/asks/:idx/reply", checkAuth("master"), checkValidity({ "stringField": ["reply"] }), endRequestHandler(async (req, res, next) => {
-    const { reply } = req.body;
+router.post("/users/asks/:idx/reply", checkAuth("master"), checkValidity({ "stringField": ["askReply"] }), endRequestHandler(async (req, res, next) => {
+    const { askReply } = req.body;
     const askIdx = req.params.idx;
 
     const ask = await getOneResult(`
@@ -162,9 +162,9 @@ router.post("/users/asks/:idx/reply", checkAuth("master"), checkValidity({ "stri
         UPDATE calenduck.ask
         SET reply = $1
         WHERE idx = $2
-    `, [reply, askIdx]);
+    `, [askReply, askIdx]);
 
-    makeNotification(req.decoded.idx, "reply", { "title": ask.title, "reply": reply });
+    makeNotification(req.decoded.idx, "reply", { "title": ask.title, "reply": askReply });
 
     return res.sendStatus(201);
 }))
