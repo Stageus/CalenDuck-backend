@@ -5,7 +5,7 @@ const notificationSchema = require("../../database/mongooseSchema/notificationSc
 const checkAuth = require("../middlewares/checkAuth");
 const checkValidity = require("../middlewares/checkValidity");
 
-const { PAGESIZE } = require("../constants");
+const { PAGE_SIZE } = require("../constants");
 
 const endRequestHandler = require("../modules/endRequestHandler");
 
@@ -13,7 +13,7 @@ const endRequestHandler = require("../modules/endRequestHandler");
 router.get("/", checkAuth("login"), checkValidity({"numberField": ["page"]}), endRequestHandler(async (req, res, next) => {
     const loginUser = req.decoded;
     const { page } = req.body;
-    const skipAmount = (page - 1) * PAGESIZE;
+    const skipAmount = (page - 1) * PAGE_SIZE;
 
     const notificationList = await notificationSchema
         .aggregate([
@@ -28,7 +28,7 @@ router.get("/", checkAuth("login"), checkValidity({"numberField": ["page"]}), en
           }}
         ]).sort({ date: "desc" })
           .skip(skipAmount)
-          .limit(PAGESIZE);
+          .limit(PAGE_SIZE);
 
     if (!notificationList || notificationList.length === 0) {
       return res.sendStatus(204);
