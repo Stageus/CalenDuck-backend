@@ -54,6 +54,16 @@ const checkValidity = (data) => {
 
                     req[source][item] = parseInt(req[source][item]);
                 }
+                if (typeKey === "dateField") {
+                    const dateRegexObj = {
+                        "fullDate": "FULLDATEREGEX",
+                        "yearMonth": "YEARMONTH"
+                    }
+
+                    if (item in dateRegexObj && !dateRegexObj[item].test(value)) {
+                        return next(new BadRequestException());
+                    }
+                }
                 if (typeKey === "authField") {
                     const regexObj = {
                         "id": IDREGEX,
