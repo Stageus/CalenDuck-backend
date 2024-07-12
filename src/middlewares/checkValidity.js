@@ -1,13 +1,18 @@
 const { BadRequestException } = require("../model/customException");
 
 const {
-    IDREGEX,
-    PWREGEX,
-    EMAILREGEX,
-    NICKNAMEREGEX,
-    WHITESPACEREGEX,
-    PARAMREGEX,
-    CODEREGEX
+    ID_REGEX,
+    PW_REGEX,
+    EMAIL_REGEX,
+    NICKNAME_REGEX,
+    WHITESPACE_REGEX,
+    PARAM_REGEX,
+    CODE_REGEX,
+    FULL_DATE_REGEX,
+    YEAR_MONTH_REGEX,
+    MAX_LENGTH_50_REGEX,
+    MAX_LENGTH_200_REGEX,
+    MAX_LENGTH_300_REGEX
 } = require("../constants");
 
 /**
@@ -45,10 +50,10 @@ const checkValidity = (data) => {
                 }
 
                 if (typeKey === "stringField") {
-                    req[source][item] = value.replace(WHITESPACEREGEX, ' ');
+                    req[source][item] = value.replace(WHITESPACE_REGEX, ' ');
                 }
                 if (typeKey === "numberField") {
-                    if (!PARAMREGEX.test(value)) {
+                    if (!PARAM_REGEX.test(value)) {
                         return next(new BadRequestException());
                     }
 
@@ -56,20 +61,22 @@ const checkValidity = (data) => {
                 }
                 if (typeKey === "dateField") {
                     const dateRegexObj = {
-                        "fullDate": "FULLDATEREGEX",
-                        "yearMonth": "YEARMONTH"
+                        "fullDate": FULL_DATE_REGEX,
+                        "yearMonth": YEAR_MONTH_REGEX
                     }
 
                     if (item in dateRegexObj && !dateRegexObj[item].test(value)) {
                         return next(new BadRequestException());
                     }
+
+                    req[source][item] = parseInt(req[source][item]);
                 }
                 if (typeKey === "authField") {
                     const regexObj = {
-                        "id": IDREGEX,
-                        "pw": PWREGEX,
-                        "email": EMAILREGEX,
-                        "nickname": NICKNAMEREGEX
+                        "id": ID_REGEX,
+                        "pw": PW_REGEX,
+                        "email": EMAIL_REGEX,
+                        "nickname": NICKNAME_REGEX
                     }
 
                     if (item in regexObj && !regexObj[item].test(value)) {
@@ -77,7 +84,7 @@ const checkValidity = (data) => {
                     }
                 }
                 if (typeKey === "codeField") {
-                    if (!CODEREGEX.test(value)) {
+                    if (!CODE_REGEX.test(value)) {
                         return next(new BadRequestException());
                     }
                 }
