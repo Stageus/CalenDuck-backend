@@ -9,7 +9,7 @@ const CODE_REGEX = /^[\d]{6}$/;
 const FULL_DATE_REGEX = /^(?:(?:20(?:2[\d]|30)(?:(?:0[13578]|1[02])(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)(?:0[1-9]|[12]\d|30)|02(?:0[1-9]|1\d|2[0-8])))|(?:202[48])0229)$/;
 const YEAR_MONTH_REGEX = /^20(?:2[\d]|30)(?:0[1-9]|1[0-2])$/;
 const MAX_LENGTH_50_REGEX = /^.{1,50}$/;
-const MAX_LENGTH_200_REGEX = /^.{1,200}$/;
+const MAX_LENGTH_100_REGEX = /^.{1,100}$/;
 const MAX_LENGTH_300_REGEX = /^.{1,300}$/;
 
 // /notification
@@ -53,6 +53,6 @@ module.exports = {
     FULL_DATE_REGEX,
     YEAR_MONTH_REGEX,
     MAX_LENGTH_50_REGEX,
-    MAX_LENGTH_200_REGEX,
+    MAX_LENGTH_100_REGEX,
     MAX_LENGTH_300_REGEX
 };
