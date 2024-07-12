@@ -105,7 +105,7 @@ router.post("/interests", checkAuth("master"), checkValidity({ "stringField": ["
 }))
 
 // 관심사 계정 권한 부여
-router.post("/users/permission", checkAuth("master"), checkValidity({ "stringField": ["interestIdx"], "numberField": ["userIdx"] }), endRequestHandler(async (req, res, next) => {
+router.post("/users/permission", checkAuth("master"), checkValidity({ "numberField": ["userIdx", "interestIdx"] }), endRequestHandler(async (req, res, next) => {
     const { userIdx, interestIdx } = req.body;
 
     const userAndInterest = await getOneResult(`
