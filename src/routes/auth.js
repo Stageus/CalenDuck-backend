@@ -4,7 +4,7 @@ const crypto = require("crypto");
 
 const checkValidity = require("../middlewares/checkValidity");
 
-const { IDREGEX, RANGE, MIN } = require("../constants");
+const { ID_REGEX, RANGE, MIN } = require("../constants");
 
 const { 
     ConflictException,
@@ -92,7 +92,7 @@ router.post("/check-code", checkValidity({"authField": ["email"], "codeField": [
       } 
 
     if (pageType === "findPw") {
-      if (!IDREGEX.test(id)) {
+      if (!ID_REGEX.test(id)) {
         return next(new BadRequestException());
       }
       tokenPayload.id = id;
