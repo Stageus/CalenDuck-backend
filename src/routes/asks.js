@@ -34,8 +34,8 @@ router.get("/category", checkAuth("login"), endRequestHandler(async (req, res, n
 }))
 
 // 문의 추가
-router.post("/", checkAuth("login"), checkValidity({ "stringField": ["title", "contents"], "numberField": ["categoryIdx"] }), endRequestHandler(async (req, res, next) => {
-    const { categoryIdx, title, contents } = req.body;
+router.post("/", checkAuth("login"), checkValidity({ "stringField": ["title", "askContents"], "numberField": ["categoryIdx"] }), endRequestHandler(async (req, res, next) => {
+    const { categoryIdx, title, askContents } = req.body;
 
     const askCategory = await getOneResult(`
         SELECT 1
@@ -48,9 +48,9 @@ router.post("/", checkAuth("login"), checkValidity({ "stringField": ["title", "c
     }
 
     await psql.query(`
-        INSERT INTO calenduck.ask(user_idx, ask_category_idx, title, contents)
+        INSERT INTO calenduck.ask(user_idx, ask_category_idx, title, askContents)
         VALUES($1, $2, $3, $4)
-    `, [req.decoded.idx, categoryIdx, title, contents]);
+    `, [req.decoded.idx, categoryIdx, title, askContents]);
 
     return res.sendStatus(201);
 }))
