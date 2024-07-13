@@ -21,6 +21,7 @@ const {
  *  numberField?: string[]
  *  authField?: string[],
  *  codeField?: string[],
+ *  dateField?: string[]
  * }} ValidityOption
  */
 
@@ -82,8 +83,6 @@ const checkValidity = (data) => {
                     if (item in dateRegexObj && !dateRegexObj[item].test(value)) {
                         return next(new BadRequestException());
                     }
-
-                    req[source][item] = parseInt(req[source][item]);
                 }
                 if (typeKey === "authField") { // 인증 관련 정규식 처리
                     const authRegexObj = {
