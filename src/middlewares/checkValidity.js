@@ -11,7 +11,7 @@ const {
     FULL_DATE_REGEX,
     YEAR_MONTH_REGEX,
     MAX_LENGTH_50_REGEX,
-    MAX_LENGTH_200_REGEX,
+    MAX_LENGTH_100_REGEX,
     MAX_LENGTH_300_REGEX
 } = require("../constants");
 
@@ -53,12 +53,12 @@ const checkValidity = (data) => {
 
                 if (typeKey === "stringField") { // 개행처리 및 글자수 정규식 처리
                     const stringRegexObj = {
-                        "personalContents": MAX_LENGTH_200_REGEX,
-                        "interestContents": MAX_LENGTH_200_REGEX,
+                        "personalContents": MAX_LENGTH_100_REGEX,
+                        "interestContents": MAX_LENGTH_100_REGEX,
                         "askTitle": MAX_LENGTH_50_REGEX,
                         "askContents": MAX_LENGTH_300_REGEX,
                         "askReply": MAX_LENGTH_300_REGEX,
-                        "interestName": MAX_LENGTH_200_REGEX
+                        "interestName": MAX_LENGTH_100_REGEX
                     }
 
                     if (item in stringRegexObj && !stringRegexObj[item].test(value)) {
