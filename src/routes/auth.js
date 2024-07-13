@@ -37,9 +37,10 @@ router.post("/email", checkValidity({"authField": ["email"]}), endRequestHandler
     try {
       const transporter = nodemailer.createTransport({
         service: process.env.EMAIL_SERVICE,
+        host: process.env.EMAIL_HOST,
         auth: {
-          user: process.env.USER,
-          pass: process.env.PASSWORD,
+          user: process.env.EMAIL_ID,
+          pass: process.env.EMAIL_PASSWORD,
         },
       });
 
@@ -52,7 +53,7 @@ router.post("/email", checkValidity({"authField": ["email"]}), endRequestHandler
       redis.expire(email, 3 * 60);
 
       await transporter.sendMail({
-        from: process.env.USER,
+        from: process.env.EMAIL_ID,
         to: email,
         subject: "Calenduck 이메일 인증번호",
         text: `이메일 인증 번호는 ${code}입니다.`,
