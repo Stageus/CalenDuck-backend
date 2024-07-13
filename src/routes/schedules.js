@@ -42,7 +42,7 @@ router.get("/", checkAuth("login"), endRequestHandler(async (req, res, next) => 
         GROUP BY EXTRACT(DAY FROM time), contents
     `, [year, month]);
 
-    if ( personalScheduleList.length === 0 && interestScheduleList.length === 0 ) return res.sendStatus(204); 
+    if (personalScheduleList.length === 0 && interestScheduleList.length === 0) return res.sendStatus(204); 
 
     // 개인 스케줄을 날짜별로 리스트에 추가
     personalScheduleList.forEach(schedule => {
