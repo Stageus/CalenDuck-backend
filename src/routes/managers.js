@@ -17,12 +17,12 @@ const endRequestHandler = require("../modules/endRequestHandler");
 
 // 관심사 스케줄 생성
 router.post("/schedules/interests", checkAuth("master"), endRequestHandler(async (req, res, next) => {
-    const { date_time, contents } = req.body
+    const { dateTime, contents } = req.body
     
     await psql.query(`
         INSERT INTO calenduck.interest_schedule (time, contents) 
         VALUES ($1, $2)
-    `, [date_time, contents]);
+    `, [dateTime, contents]);
 
     return res.sendStatus(201);
 }))
