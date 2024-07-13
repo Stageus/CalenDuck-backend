@@ -16,20 +16,16 @@ const {
 const endRequestHandler = require("../modules/endRequestHandler");
 
 // 관심사 스케줄 생성
-router.post("/schedules/interests", async (req, res) => {
+router.post("/schedules/interests", checkAuth("master"), endRequestHandler(async (req, res, next) => {
     const { date_time, contents } = req.body
+    
+    await psql.query(`
+        INSERT INTO calenduck.interest_schedule (time, contents) 
+        VALUES ($1, $2)
+    `, [date_time, contents]);
 
-    try {
-        await psql.query(`
-            INSERT INTO calenduck.interest_schedule (time, contents) 
-            VALUES ($1, $2)
-        `, [date_time, contents]);
-
-        return res.sendStatus(201);
-    } catch (err) {
-        return next(err);
-    } 
-})
+    return res.sendStatus(201);
+}))
 
 // 관심사 스케줄 수정
 router.put("/schedules/interests/:idx", async (req, res) => {
