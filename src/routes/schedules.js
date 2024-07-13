@@ -367,27 +367,21 @@ router.post("/", checkAuth("login"), endRequestHandler(async (req, res, next) =>
 }))
 
 // 스케줄 수정
-router.put("/:idx", checkAuth(), async (req, res, next) => {
+router.put("/:idx", checkAuth("login"), checkValidity({"numberField": ["idx"] }), endRequestHandler(async (req, res, next) => {
     const { dateTime, contents } = req.body;
     const { idx } = req.params;
     const loginUser = req.decoded;
 
-    try {
-        const personalSchedule = await psql.query(`
-            UPDATE calenduck.personal_schedule
-            SET time = $1, contents = $2
-            WHERE idx = $3 AND user_idx = $4 
-        `, [dateTime, contents, idx, loginUser]);
+    const personalSchedule = await psql.query(`
+        UPDATE calenduck.personal_schedule
+        SET time = $1, contents = $2
+        WHERE idx = $3 AND user_idx = $4 
+    `, [dateTime, contents, idx, loginUser]);
 
-        if (personalSchedule.length === 0) {
-            return res.sendStatus(404);
-        }
+    if (personalSchedule.length === 0) return res.sendStatus(404);
 
-        return res.sendStatus(201);
-    }catch(err){
-        return next(err);
-    }
-})
+    return res.sendStatus(201);
+}))
 
 // 스케줄 삭제
 router.delete("/:idx", checkAuth(), async (req, res, next) => {
