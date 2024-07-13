@@ -28,34 +28,30 @@ router.post("/schedules/interests", checkAuth("master"), endRequestHandler(async
 }))
 
 // 관심사 스케줄 수정
-router.put("/schedules/interests/:idx", async (req, res) => {
+router.put("/schedules/interests/:idx", checkAuth("master"), checkValidity({ "numberField": ["idx"] }), endRequestHandler(async (req, res, next) => {
     const { dateTime, contents } = req.body;
     const { idx } = req.params;
-    
-    try {
-        // 스케줄 존재 여부 확인
-        const interest_schedule = await getOneResult(`
-            SELECT 1
-            FROM calenduck.interest_schedule
-            WHERE idx = $1
-        `, [idx]);
-    
-        if (!interest_schedule) {
-            return next(new NotFoundException());
-        }
 
-        // 스케줄 수정
-        await psql.query(`
-            UPDATE calenduck.interest_schedule
-            SET time = $1, contents = $2
-            WHERE idx = $3
-        `, [dateTime, contents, idx]);
+    // 스케줄 존재 여부 확인
+    const interest_schedule = await getOneResult(`
+        SELECT 1
+        FROM calenduck.interest_schedule
+        WHERE idx = $1
+    `, [idx]);
 
-        return res.sendStatus(201);
-    } catch (err) {
-        return next(err);
-    } 
-})
+    if (!interest_schedule) {
+        return next(new NotFoundException());
+    }
+
+     // 스케줄 수정
+     await psql.query(`
+        UPDATE calenduck.interest_schedule
+        SET time = $1, contents = $2
+        WHERE idx = $3
+    `, [dateTime, contents, idx]);
+
+    return res.sendStatus(201);
+}))
 
 // 관심사 스케줄 삭제
 router.put("/schedules/interests/:idx", async (req, res) => {
