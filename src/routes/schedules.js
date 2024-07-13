@@ -329,6 +329,29 @@ router.post("/interest/:idx/notify", checkAuth("login"), checkValidity({"numberF
      return res.sendStatus(201);
 }))
 
+// 관심사 스케줄 중요 알림 설정 삭제하기
+router.delete("/interest/:idx/notify", checkAuth("login"), checkValidity({"numberField": ["idx"] }), endRequestHandler(async (req, res, next) => {
+    const { idx } = req.params;
+
+    // 해당 관심사 스케줄의 현재 priority 값 조회
+    const interestSchedule = await getOneResult(`
+        SELECT priority
+        FROM calenduck.interest_schedule
+        WHERE idx = $1
+    `, [idx]);
+
+    // 해당 스케줄 없을 시
+    if (!interestSchedule) return next(new NotFoundException());
+
+    // priority 값을 false로 설정
+    await psql.query(`
+        UPDATE calenduck.interest_schedule
+            SET priority = false;
+            WHERE idx = $1
+    `, [idx]);
+
+    return res.sendStatus(201);
+}))
 
 // 스케줄 생성
 router.post("/", checkAuth(), async (req, res, next) => {
