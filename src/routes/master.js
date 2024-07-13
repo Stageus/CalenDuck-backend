@@ -145,7 +145,7 @@ router.post("/users/permission", checkAuth("master"), checkValidity({ "numberFie
 }))
 
 // 문의 답변 작성
-router.post("/users/asks/:idx/reply", checkAuth("master"), checkValidity({ "stringField": ["askReply"] }), endRequestHandler(async (req, res, next) => {
+router.post("/users/asks/:idx/reply", checkAuth("master"), checkValidity({ "stringField": ["askReply"], "numberField": ["idx"] }), endRequestHandler(async (req, res, next) => {
     const { askReply } = req.body;
     const askIdx = req.params.idx;
 
@@ -170,7 +170,7 @@ router.post("/users/asks/:idx/reply", checkAuth("master"), checkValidity({ "stri
 }))
 
 // 관심사 수정
-router.put("/interest/:idx", checkAuth("master"), checkValidity({ "stringField": ["interestName"], "numberField": ["interestIdx"] }), endRequestHandler(async (req, res, next) => {
+router.put("/interest/:idx", checkAuth("master"), checkValidity({ "stringField": ["interestName"], "numberField": ["idx"] }), endRequestHandler(async (req, res, next) => {
     const { interestName } = req.body;
     const interestIdx = req.params.idx;
 
@@ -239,7 +239,7 @@ router.put("/managers/assignment", checkAuth("master"), checkValidity({ "numberF
 }))
 
 // 관심사 삭제
-router.delete("/interest/:idx", checkAuth("master"), checkValidity({ "numberField": ["interestIdx"] }), endRequestHandler(async (req, res, next) => {
+router.delete("/interest/:idx", checkAuth("master"), checkValidity({ "numberField": ["idx"] }), endRequestHandler(async (req, res, next) => {
     const interestIdx = req.params.idx;
 
     await psql.query(`
@@ -251,7 +251,7 @@ router.delete("/interest/:idx", checkAuth("master"), checkValidity({ "numberFiel
 }))
 
 // 관심사 계정 권한 삭제
-router.delete("/managers/:idx/permission", checkAuth("master"), checkValidity({ "numberField": ["managerIdx"] }), endRequestHandler(async (req, res, next) => {
+router.delete("/managers/:idx/permission", checkAuth("master"), checkValidity({ "numberField": ["idx"] }), endRequestHandler(async (req, res, next) => {
     const managerIdx = req.params.idx;
 
     const manager = await getOneResult(`
