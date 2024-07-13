@@ -76,7 +76,7 @@ router.get("/interest", checkAuth("login"), checkValidity({ "numberField": ["int
     const month = date.substring(4, 6);
 
     // 날짜별로 빈 리스트 초기화(31개)
-    let scheduleList = Array.from({ length: 31 }, () => []);
+    const scheduleList = Array.from({ length: 31 }, () => []);
 
     // 관심사 스케줄 가져오기
     const interestScheduleList = await getManyResults(`
@@ -86,7 +86,7 @@ router.get("/interest", checkAuth("login"), checkValidity({ "numberField": ["int
         GROUP BY EXTRACT(DAY FROM time), contents
     `, [year, month, interestIdx]);
 
-    if ( interestScheduleList === 0 ) return res.sendStatus(204); 
+    if (interestScheduleList === 0) return res.sendStatus(204); 
 
     // 관심사 스케줄을 날짜별로 리스트에 추가
     interestScheduleList.forEach(schedule => {
