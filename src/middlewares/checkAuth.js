@@ -7,8 +7,8 @@ const {
 
 const {
     SIGNUP,
-    FINDID,
-    FINDPW,
+    FIND_ID,
+    FIND_PW,
     LOGIN,
     MASTER,
     MANAGER
@@ -26,7 +26,7 @@ const checkAuth = (type = null) => {
             const jwtData = jwt.verify(token, process.env.TOKEN_SECRET_KEY);
             req.decoded = jwtData;
 
-            const validTypes = [SIGNUP, FINDID, FINDPW, LOGIN];
+            const validTypes = [SIGNUP, FIND_ID, FIND_PW, LOGIN];
 
             if (validTypes.includes(type) && jwtData.type !== type) {
                 return next(new UnauthorizedException());
