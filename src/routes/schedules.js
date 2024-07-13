@@ -305,33 +305,30 @@ router.delete(":idx/notify", checkAuth("login"), checkValidity({"numberField": [
    return res.sendStatus(201);
 }))
 
-// 관심사 스케줄 중요 알림 설정
-router.put("/interest/:idx/notify", async (req, res, next) => {
+// 관심사 스케줄 중요 알림 설정 추가하기
+router.post("/interest/:idx/notify", checkAuth("login"), checkValidity({"numberField": ["idx"] }), endRequestHandler(async (req, res, next) => {
     const { idx } = req.params;
 
-    try {
-        // 해당 관심사 스케줄의 현재 priority 값 조회
-        const interest_schedule = await getOneResult(`
-            SELECT priority
-            FROM calenduck.interest_schedule
+    // 해당 관심사 스케줄의 현재 priority 값 조회
+    const interestSchedule = await getOneResult(`
+        SELECT priority
+        FROM calenduck.interest_schedule
+        WHERE idx = $1
+    `, [idx]);
+
+    // 해당 스케줄 없을 시
+    if (!interestSchedule) return next(new NotFoundException());
+
+    // priority 값을 true로 설정
+    await psql.query(`
+        UPDATE calenduck.interest_schedule
+            SET priority = true;
             WHERE idx = $1
-        `, [idx]);
+     `, [idx]);
 
-        // priority 값을 토글
-        const newPriority = !interest_schedule.priority;
+     return res.sendStatus(201);
+}))
 
-        // priority 값 업데이트
-        await psql.query(`
-            UPDATE calenduck.interest_schedule
-            SET priority = $1
-            WHERE idx = $2
-        `, [newPriority, idx]);
-
-        return res.sendStatus(201);
-    }catch(err){
-        return next(err);
-    }
-}) 
 
 // 스케줄 생성
 router.post("/", checkAuth(), async (req, res, next) => {
