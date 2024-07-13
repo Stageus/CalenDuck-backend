@@ -13,64 +13,56 @@ const {
 const endRequestHandler = require("../modules/endRequestHandler");
 
 // 특정 년월 스케줄 전체 불러오기
-router.get("/", checkAuth(), async (req, res, next) => {
+router.get("/", checkAuth("login"), endRequestHandler(async (req, res, next) => {
     const { date } = req.query;
 
-    try{
-        const year = date.substring(0, 4);
-        const month = date.substring(4, 6);
+    const year = date.substring(0, 4);
+    const month = date.substring(4, 6);
 
-        // 날짜별로 빈 리스트 초기화(31개)
-        let scheduleList = Array.from({ length: 31 }, () => []);
+    // 날짜별로 빈 리스트 초기화(31개)
+    let scheduleList = Array.from({ length: 31 }, () => []);
 
-        // 개인 스케줄 가져오기
-        const personalSchedule = await getManyResults(`
-            SELECT COUNT(*) AS count, EXTRACT(DAY FROM time) as day
-            FROM calenduck.personal_schedule
-            WHERE EXTRACT(YEAR FROM time) = $1 AND EXTRACT(MONTH FROM time) = $2
-            GROUP BY EXTRACT(DAY FROM time)
-        `, [year, month]);
+    // 개인 스케줄 가져오기
+    const personalScheduleList = await getManyResults(`
+        SELECT COUNT(*) AS count, EXTRACT(DAY FROM time) as day
+        FROM calenduck.personal_schedule
+        WHERE EXTRACT(YEAR FROM time) = $1 AND EXTRACT(MONTH FROM time) = $2
+        GROUP BY EXTRACT(DAY FROM time)
+    `, [year, month]);
 
-        // 관심사 스케줄 가져오기
-        const interestSchedule = await getManyResults(`
-            SELECT COUNT(*) AS count, EXTRACT(DAY FROM time) as day, contents as name
-            FROM calenduck.interest_schedule
-            WHERE EXTRACT(YEAR FROM time) = $1 AND EXTRACT(MONTH FROM time) = $2
-            GROUP BY EXTRACT(DAY FROM time), contents
-        `, [year, month]);
+    // 관심사 스케줄 가져오기
+    const interestScheduleList = await getManyResults(`
+        SELECT COUNT(*) AS count, EXTRACT(DAY FROM time) as day, contents as name
+        FROM calenduck.interest_schedule
+        WHERE EXTRACT(YEAR FROM time) = $1 AND EXTRACT(MONTH FROM time) = $2
+        GROUP BY EXTRACT(DAY FROM time), contents
+    `, [year, month]);
 
-        // 결과 반환
-        if ( personalSchedule.length === 0 && !interestSchedule.length === 0 ) {
-            return res.sendStatus(204); 
-        }
+    if ( personalScheduleList.length === 0 && !interestScheduleList.length === 0 ) return res.sendStatus(204); 
 
-        // 개인 스케줄을 날짜별로 리스트에 추가
-        personalSchedule.forEach(schedule => {
+    // 개인 스케줄을 날짜별로 리스트에 추가
+    personalScheduleList.forEach(schedule => {
         const day = schedule.day - 1; // index값이 day 값은 같게 하기 위해서 1을 뺌
         scheduleList[day].push({
             type: 'personal',
-            name: null,
             count: schedule.count
         });
-        });
+    });
 
-        // 관심사 스케줄을 날짜별로 리스트에 추가
-        interestSchedule.forEach(schedule => {
-            const day = schedule.day - 1; // index값이 day 값은 같게 하기 위해서 1을 뺌
-            scheduleList[day].push({
-                type: 'interest',
-                name: schedule.name,
-                count: schedule.count
+    // 관심사 스케줄을 날짜별로 리스트에 추가
+    interestScheduleList.forEach(schedule => {
+        const day = schedule.day - 1; // index값이 day 값은 같게 하기 위해서 1을 뺌
+        scheduleList[day].push({
+            type: 'interest',
+            name: schedule.name,
+            count: schedule.count
         });
-        });
+    });
 
-        return res.status(200).json({
-            list: scheduleList
-        });
-    }catch(err){
-        return next(err);
-    }
-})
+    return res.status(200).send({
+        list: scheduleList
+    })
+}))
 
 // 특정 년월 특정 관심사 불러오기
 router.get("/interest", checkAuth(), async (req, res, next) => {
