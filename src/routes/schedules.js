@@ -144,12 +144,12 @@ router.get("/details/interest", checkAuth("login"), checkValidity({ "dateField":
 }))
 
 // 특정 날짜 스케줄 전체 불러오기
-router.get("/details", checkAuth("login"), endRequestHandler(async (req, res, next) => {
-    const { date } = req.query;
+router.get("/details", checkAuth("login"), checkValidity({ "dateField": ["fullDate"]}), endRequestHandler(async (req, res, next) => {
+    const { fullDate } = req.query;
 
-    const year = date.substring(0, 4);
-    const month = date.substring(4, 6);
-    const day =  date.substring(6, 8)
+    const year = fullDate.substring(0, 4);
+    const month = fullDate.substring(4, 6);
+    const day = fullDate.substring(6, 8)
 
     // 빈 리스트 초기화
     const scheduleList = [];
