@@ -140,73 +140,64 @@ router.get("/details/interest", checkAuth("login"), checkValidity({ "numberField
 }))
 
 // 특정 날짜 스케줄 전체 불러오기
-router.get("/details", checkAuth(), async (req, res, next) => {
+router.get("/details", checkAuth("login"), endRequestHandler(async (req, res, next) => {
     const { date } = req.query;
 
-    try{
-        const year = date.substring(0, 4);
-        const month = date.substring(4, 6);
-        const day =  date.substring(6, 8)
+    const year = date.substring(0, 4);
+    const month = date.substring(4, 6);
+    const day =  date.substring(6, 8)
 
-        // 빈 리스트 초기화
-        let scheduleList = [];
+    // 빈 리스트 초기화
+    const scheduleList = [];
 
-        // 개인 스케줄 가져오기
-        const personalSchedule = await getManyResults(`
-            SELECT personal_schedule.idx AS idx, personal_schedule.time AS time, personal_schedule.contents AS contents, personal_schedule.priority AS priority
-            FROM calenduck.personal_schedule
-            WHERE EXTRACT(YEAR FROM personal_schedule.time) = $1 
-            AND EXTRACT(MONTH FROM personal_schedule.time) = $2
-            AND EXTRACT(DAY FROM personal_schedule.time) = $3
-        `, [year, month, day]);
+    // 개인 스케줄 가져오기
+    const personalScheduleList = await getManyResults(`
+        SELECT personal_schedule.idx AS idx, personal_schedule.time AS time, personal_schedule.contents AS contents, personal_schedule.priority AS priority
+        FROM calenduck.personal_schedule
+        WHERE DATE(personal_schedule.time) = DATE($1)
+    `, [`${year}-${month}-${day}`]);
 
-        // 관심사 스케줄 가져오기
-        const interestSchedule = await getManyResults(`
-            SELECT interest_schedule.idx AS idx, interest_schedule.time AS time, interest_schedule.contents AS contents, interest_schedule.priority AS priority, interest.interest AS name
-            FROM calenduck.interest_schedule
-            INNER JOIN calenduck.interest ON interest_schedule.interest_idx = interest.idx
-            WHERE EXTRACT(YEAR FROM interest_schedule.time) = $1 
-            AND EXTRACT(MONTH FROM interest_schedule.time) = $2
-            AND EXTRACT(DAY FROM interest_schedule.time) = $3
-        `, [year, month, day]);
+    // 관심사 스케줄 가져오기
+    const interestScheduleList = await getManyResults(`
+        SELECT interest_schedule.idx AS idx, interest_schedule.time AS time, interest_schedule.contents AS contents, interest_schedule.priority AS priority, interest.interest AS name
+        FROM calenduck.interest_schedule
+        JOIN calenduck.interest ON interest_schedule.interest_idx = interest.idx
+        WHERE DATE(interest_schedule.time) = DATE($1)
+    `, [`${year}-${month}-${day}`]);
 
-        // 스케줄이 없는 경우
-        if (personalSchedule === 0 && interestSchedule.length === 0) {
-            return res.sendStatus(204);
-        }
+    // 스케줄이 없는 경우
+    if (personalScheduleList === 0 && interestScheduleList.length === 0) return res.sendStatus(204);
 
-        // 개인 스케줄을 리스트에 추가
-        personalSchedule.forEach(schedule => {
-            scheduleList.push({
-                idx: schedule.idx,
-                name: null,
-                time: schedule.time,
-                type: 'personal',
-                contents: schedule.contents,
-                priority: schedule.priority
-            });
+    // 개인 스케줄을 리스트에 추가
+    personalScheduleList.forEach(schedule => {
+        scheduleList.push({
+            idx: schedule.idx,
+            time: schedule.time,
+            type: 'personal',
+            contents: schedule.contents,
+            priority: schedule.priority
         });
+    });
 
-        // 관심사 스케줄을 리스트에 추가
-        interestSchedule.forEach(schedule => {
-            scheduleList.push({
-                idx: schedule.idx,
-                name: schedule.name,
-                time: schedule.time,
-                type: 'interest',
-                contents: schedule.contents,
-                priority: schedule.priority
-            });
+    // 관심사 스케줄을 리스트에 추가
+    interestScheduleList.forEach(schedule => {
+        scheduleList.push({
+            idx: schedule.idx,
+            name: schedule.name,
+            time: schedule.time,
+            type: 'interest',
+            contents: schedule.contents,
+            priority: schedule.priority
         });
-       
-        // 결과 반환
-        return res.status(200).json({
-            list: scheduleList
-        });
-    }catch(err){
-        return next(err);
-    }
-})
+    });
+    
+    // 결과 반환
+    return res.status(200).send({
+        list: scheduleList
+    });
+}))
+
+
 
 // 스케줄 검색
 router.get("/searches", checkAuth(), async (req, res, next) => {
