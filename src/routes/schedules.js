@@ -17,11 +17,11 @@ const {
 const endRequestHandler = require("../modules/endRequestHandler");
 
 // 특정 년월 스케줄 전체 불러오기
-router.get("/", checkAuth("login"), endRequestHandler(async (req, res, next) => {
-    const { date } = req.query;
+router.get("/", checkAuth("login"), checkValidity({ "dateField": ["yearMonth"] }), endRequestHandler(async (req, res, next) => {
+    const { yearMonth } = req.query;
 
-    const year = date.substring(0, 4);
-    const month = date.substring(4, 6);
+    const year = yearMonth.substring(0, 4);
+    const month = yearMonth.substring(4, 6);
 
     // 날짜별로 빈 리스트 초기화(31개)
     const scheduleList = Array.from({ length: 31 }, () => []);
