@@ -69,11 +69,11 @@ router.get("/", checkAuth("login"), checkValidity({ "dateField": ["yearMonth"] }
 }))
 
 // 특정 년월 특정 관심사 불러오기
-router.get("/interest", checkAuth("login"), checkValidity({ "numberField": ["interestIdx"] }), endRequestHandler(async (req, res, next) => {
-    const { date, interestIdx } = req.query;
+router.get("/interest", checkAuth("login"), checkValidity({ "dateField": ["yearMonth"], "numberField": ["interestIdx"] }), endRequestHandler(async (req, res, next) => {
+    const { yearMonth, interestIdx } = req.query;
 
-    const year = date.substring(0, 4);
-    const month = date.substring(4, 6);
+    const year = yearMonth.substring(0, 4);
+    const month = yearMonth.substring(4, 6);
 
     // 날짜별로 빈 리스트 초기화(31개)
     const scheduleList = Array.from({ length: 31 }, () => []);
