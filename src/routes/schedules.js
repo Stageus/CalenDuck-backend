@@ -108,7 +108,7 @@ router.get("/details/interest", checkAuth("login"), checkValidity({ "dateField":
 
     const year = fullDate.substring(0, 4); 
     const month = fullDate.substring(4, 6);
-    const day =  fullDate.substring(6, 8)
+    const day = fullDate.substring(6, 8)
 
     // 빈 리스트 초기화
     const scheduleList = [];
