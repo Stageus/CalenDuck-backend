@@ -281,32 +281,29 @@ router.post(":idx/notify", checkAuth("login"), checkValidity({"numberField": ["i
    return res.sendStatus(201);
 }))
 
-router.put("/:idx/notify", async (req, res, next) => {
+// 스케줄 중요 알림 설정 삭제하기
+router.delete(":idx/notify", checkAuth("login"), checkValidity({"numberField": ["idx"] }), endRequestHandler(async (req, res, next) => {
     const { idx } = req.params;
 
-    try {
-        // 해당 스케줄의 현재 priority 값 조회
-        const schedule = await getOneResult(`
-            SELECT priority
-            FROM calenduck.personal_schedule
-            WHERE idx = $1
-        `, [idx]);
+    // 해당 스케줄의 현재 priority 값 조회
+    const schedule = await getOneResult(`
+        SELECT priority
+        FROM calenduck.personal_schedule
+        WHERE idx = $1
+    `, [idx]);
 
-        // priority 값을 토글
-        const newPriority = !schedule.priority;
+    // 해당 스케줄 없을 시
+    if (!schedule) return next(new NotFoundException());
 
-        // priority 값 업데이트
-        await psql.query(`
-            UPDATE calenduck.personal_schedule
-            SET priority = $1
-            WHERE idx = $2
-        `, [newPriority, idx]);
+    // priority 값을 false로 설정
+    await psql.query(`
+        UPDATE calenduck.personal_schedule
+        SET priority = false
+        WHERE idx = $1
+    `, [idx]);
 
-        return res.sendStatus(201);
-    }catch(err){
-        return next(err);
-    }
-}) 
+   return res.sendStatus(201);
+}))
 
 // 관심사 스케줄 중요 알림 설정
 router.put("/interest/:idx/notify", async (req, res, next) => {
