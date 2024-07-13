@@ -16,13 +16,13 @@ const {
 const endRequestHandler = require("../modules/endRequestHandler");
 
 // 관심사 스케줄 생성
-router.post("/schedules/interests", checkAuth("master"), endRequestHandler(async (req, res, next) => {
-    const { dateTime, contents } = req.body
+router.post("/schedules/interests", checkAuth("manager"), checkValidity({ "dateField": ["fullDate"], "stringField": ["interestContents"] }), endRequestHandler(async (req, res, next) => {
+    const { fullDate, interestContents } = req.body
     
     await psql.query(`
         INSERT INTO calenduck.interest_schedule (time, contents) 
         VALUES ($1, $2)
-    `, [dateTime, contents]);
+    `, [fullDate, interestContents]);
 
     return res.sendStatus(201);
 }))
