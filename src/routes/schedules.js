@@ -384,20 +384,16 @@ router.put("/:idx", checkAuth("login"), checkValidity({"numberField": ["idx"] })
 }))
 
 // 스케줄 삭제
-router.delete("/:idx", checkAuth(), async (req, res, next) => {
+router.delete("/:idx", checkAuth("login"), checkValidity({"numberField": ["idx"] }), endRequestHandler(async (req, res, next) => {
     const { idx } = req.params;
     const loginUser = req.decoded;
 
-    try {
-        await psql.query(`
-            DELETE FROM calenduck.personal_schedule
-            WHERE idx = $1 AND user_idx = $2
-        `, [idx, loginUser]);
+    await psql.query(`
+        DELETE FROM calenduck.personal_schedule
+        WHERE idx = $1 AND user_idx = $2
+    `, [idx, loginUser]);
 
-        return res.sendStatus(201);
-    }catch(err){
-        return next(err);
-    }
-})
+    return res.sendStatus(201);
+}))
 
 module.exports = router;
