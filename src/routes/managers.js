@@ -56,13 +56,13 @@ router.put("/schedules/interests/:idx", checkAuth("master"), checkValidity({ "nu
     const { idx } = req.params;
 
     // 스케줄 존재 여부 확인
-    const interest_schedule = await getOneResult(`
+    const interestSchedule = await getOneResult(`
         SELECT 1
         FROM calenduck.interest_schedule
         WHERE idx = $1
     `, [idx]);
 
-    if (!interest_schedule) return next(new NotFoundException());
+    if (!interestSchedule) return next(new NotFoundException());
 
     // 스케줄 삭제
     await psql.query(`
