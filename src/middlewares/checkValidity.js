@@ -1,13 +1,18 @@
 const { BadRequestException } = require("../model/customException");
 
 const {
-    IDREGEX,
-    PWREGEX,
-    EMAILREGEX,
-    NICKNAMEREGEX,
-    WHITESPACEREGEX,
-    PARAMREGEX,
-    CODEREGEX
+    ID_REGEX,
+    PW_REGEX,
+    EMAIL_REGEX,
+    NICKNAME_REGEX,
+    WHITESPACE_REGEX,
+    PARAM_REGEX,
+    CODE_REGEX,
+    FULL_DATE_REGEX,
+    YEAR_MONTH_REGEX,
+    MAX_LENGTH_50_REGEX,
+    MAX_LENGTH_200_REGEX,
+    MAX_LENGTH_300_REGEX
 } = require("../constants");
 
 /**
@@ -16,6 +21,7 @@ const {
  *  numberField?: string[]
  *  authField?: string[],
  *  codeField?: string[],
+ *  dateField?: string[]
  * }} ValidityOption
  */
 
@@ -40,34 +46,58 @@ const checkValidity = (data) => {
                         req.query[item] ? (source = "query", req.query[item]) :
                             null;
 
+                // 값이 없으면, 에러처리
                 if (!value) {
                     return next(new BadRequestException());
                 }
 
-                if (typeKey === "stringField") {
-                    req[source][item] = value.replace(WHITESPACEREGEX, ' ');
+                if (typeKey === "stringField") { // 개행처리 및 글자수 정규식 처리
+                    const stringRegexObj = {
+                        "personalContents": MAX_LENGTH_200_REGEX,
+                        "interestContents": MAX_LENGTH_200_REGEX,
+                        "askTitle": MAX_LENGTH_50_REGEX,
+                        "askContents": MAX_LENGTH_300_REGEX,
+                        "askReply": MAX_LENGTH_300_REGEX,
+                        "interestName": MAX_LENGTH_200_REGEX
+                    }
+
+                    if (item in stringRegexObj && !stringRegexObj[item].test(value)) {
+                        return next(new BadRequestException());
+                    }
+
+                    req[source][item] = value.replace(WHITESPACE_REGEX, ' ');
                 }
-                if (typeKey === "numberField") {
-                    if (!PARAMREGEX.test(value)) {
+                if (typeKey === "numberField") { // 숫자 정규식 처리 및 parseInt 처리 후 넘김
+                    if (!PARAM_REGEX.test(value)) {
                         return next(new BadRequestException());
                     }
 
                     req[source][item] = parseInt(req[source][item]);
                 }
-                if (typeKey === "authField") {
-                    const regexObj = {
-                        "id": IDREGEX,
-                        "pw": PWREGEX,
-                        "email": EMAILREGEX,
-                        "nickname": NICKNAMEREGEX
+                if (typeKey === "dateField") { // 날짜 정규식 처리 및 parseInt 처리 후 넘김
+                    const dateRegexObj = {
+                        "fullDate": FULL_DATE_REGEX,
+                        "yearMonth": YEAR_MONTH_REGEX
                     }
 
-                    if (item in regexObj && !regexObj[item].test(value)) {
+                    if (item in dateRegexObj && !dateRegexObj[item].test(value)) {
                         return next(new BadRequestException());
                     }
                 }
-                if (typeKey === "codeField") {
-                    if (!CODEREGEX.test(value)) {
+                if (typeKey === "authField") { // 인증 관련 정규식 처리
+                    const authRegexObj = {
+                        "id": ID_REGEX,
+                        "pw": PW_REGEX,
+                        "email": EMAIL_REGEX,
+                        "nickname": NICKNAME_REGEX
+                    }
+
+                    if (item in authRegexObj && !authRegexObj[item].test(value)) {
+                        return next(new BadRequestException());
+                    }
+                }
+                if (typeKey === "codeField") { // 인증코드 정규식 처리
+                    if (!CODE_REGEX.test(value)) {
                         return next(new BadRequestException());
                     }
                 }

@@ -6,7 +6,7 @@ const errorHandler = async (err, req, res, next) => {
       message: err.message,
     });
   } else {
-    console.log(`에러 발생 : ${err}`);
+    console.log(err);
 
     return res.status(500).send({
       message: "서버 에러 발생",
