@@ -7,6 +7,10 @@ const checkValidity = require("../middlewares/checkValidity");
 const checkAuth = require("../middlewares/checkAuth")
 
 const { 
+    NotFoundException 
+} = require("../model/customException");
+
+const { 
     getOneResult,
     getManyResults
 } = require("../modules/sqlHandler");
@@ -253,7 +257,30 @@ router.get("/searches", checkAuth("login"), endRequestHandler(async (req, res, n
     });
 }))
 
-// 스케줄 중요 알림 설정
+// 스케줄 중요 알림 설정 추가하기
+router.post(":idx/notify", checkAuth("login"), checkValidity({"numberField": ["idx"] }), endRequestHandler(async (req, res, next) => {
+    const { idx } = req.params;
+
+    // 해당 스케줄의 현재 priority 값 조회
+    const schedule = await getOneResult(`
+        SELECT priority
+        FROM calenduck.personal_schedule
+        WHERE idx = $1
+    `, [idx]);
+
+    // 해당 스케줄 없을 시
+    if (!schedule) return next(new NotFoundException());
+
+    // priority 값을 true로 설정
+    await psql.query(`
+       UPDATE calenduck.personal_schedule
+       SET priority = true
+       WHERE idx = $1
+    `, [idx]);
+
+   return res.sendStatus(201);
+}))
+
 router.put("/:idx/notify", async (req, res, next) => {
     const { idx } = req.params;
 
