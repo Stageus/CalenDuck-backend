@@ -367,18 +367,26 @@ router.post("/", checkAuth("login"), checkValidity({ "dateField": ["fullDate"], 
 }))
 
 // 스케줄 수정
-router.put("/:idx", checkAuth("login"), checkValidity({"numberField": ["idx"] }), endRequestHandler(async (req, res, next) => {
-    const { dateTime, contents } = req.body;
+router.put("/:idx", checkAuth("login"), checkValidity({ "dateField": ["fullDate"], "stringField": ["personalContents"], "numberField": ["idx"] }), endRequestHandler(async (req, res, next) => {
+    const { fullDate, personalContents } = req.body;
     const { idx } = req.params;
     const loginUser = req.decoded;
 
-    const personalSchedule = await psql.query(`
+    // 스케줄 존재 여부 확인 
+    const personalSchedule = await getOneResult(`
+        SELECT 1
+        FROM calenduck.personal_schedule
+        WHERE idx = $1
+    `, [idx]);
+
+    if (!personalSchedule) return next(new NotFoundException());
+
+    //스케줄 수정
+    await psql.query(`
         UPDATE calenduck.personal_schedule
         SET time = $1, contents = $2
         WHERE idx = $3 AND user_idx = $4 
-    `, [dateTime, contents, idx, loginUser]);
-
-    if (personalSchedule.length === 0) return res.sendStatus(404);
+    `, [fullDate, personalContents, idx, loginUser]);
 
     return res.sendStatus(201);
 }))
