@@ -396,6 +396,15 @@ router.delete("/:idx", checkAuth("login"), checkValidity({"numberField": ["idx"]
     const { idx } = req.params;
     const loginUser = req.decoded;
 
+    // 스케줄 존재 여부 확인 
+    const personalSchedule = await getOneResult(`
+        SELECT 1
+        FROM calenduck.personal_schedule
+        WHERE idx = $1
+    `, [idx]);
+
+    if (!personalSchedule) return next(new NotFoundException());
+
     await psql.query(`
         DELETE FROM calenduck.personal_schedule
         WHERE idx = $1 AND user_idx = $2
