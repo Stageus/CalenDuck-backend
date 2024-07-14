@@ -17,11 +17,11 @@ const {
 const endRequestHandler = require("../modules/endRequestHandler");
 
 // 특정 년월 스케줄 전체 불러오기
-router.get("/", checkAuth("login"), endRequestHandler(async (req, res, next) => {
-    const { date } = req.query;
+router.get("/", checkAuth("login"), checkValidity({ "dateField": ["yearMonth"] }), endRequestHandler(async (req, res, next) => {
+    const { yearMonth } = req.query;
 
-    const year = date.substring(0, 4);
-    const month = date.substring(4, 6);
+    const year = yearMonth.substring(0, 4);
+    const month = yearMonth.substring(4, 6);
 
     // 날짜별로 빈 리스트 초기화(31개)
     const scheduleList = Array.from({ length: 31 }, () => []);
@@ -69,11 +69,11 @@ router.get("/", checkAuth("login"), endRequestHandler(async (req, res, next) => 
 }))
 
 // 특정 년월 특정 관심사 불러오기
-router.get("/interest", checkAuth("login"), checkValidity({ "numberField": ["interestIdx"] }), endRequestHandler(async (req, res, next) => {
-    const { date, interestIdx } = req.query;
+router.get("/interest", checkAuth("login"), checkValidity({ "dateField": ["yearMonth"], "numberField": ["interestIdx"] }), endRequestHandler(async (req, res, next) => {
+    const { yearMonth, interestIdx } = req.query;
 
-    const year = date.substring(0, 4);
-    const month = date.substring(4, 6);
+    const year = yearMonth.substring(0, 4);
+    const month = yearMonth.substring(4, 6);
 
     // 날짜별로 빈 리스트 초기화(31개)
     const scheduleList = Array.from({ length: 31 }, () => []);
@@ -103,12 +103,12 @@ router.get("/interest", checkAuth("login"), checkValidity({ "numberField": ["int
 }))
 
 // 특정 날짜에서 특정 관심사 불러오기
-router.get("/details/interest", checkAuth("login"), checkValidity({ "numberField": ["interestIdx"] }), endRequestHandler(async (req, res, next) => {
-    const { date, interestIdx} = req.query;
+router.get("/details/interest", checkAuth("login"), checkValidity({ "dateField": ["fullDate"], "numberField": ["interestIdx"] }), endRequestHandler(async (req, res, next) => {
+    const { fullDate, interestIdx, priority} = req.query;
 
-    const year = date.substring(0, 4); 
-    const month = date.substring(4, 6);
-    const day =  date.substring(6, 8)
+    const year = fullDate.substring(0, 4); 
+    const month = fullDate.substring(4, 6);
+    const day = fullDate.substring(6, 8)
 
     // 빈 리스트 초기화
     const scheduleList = [];
@@ -144,12 +144,12 @@ router.get("/details/interest", checkAuth("login"), checkValidity({ "numberField
 }))
 
 // 특정 날짜 스케줄 전체 불러오기
-router.get("/details", checkAuth("login"), endRequestHandler(async (req, res, next) => {
-    const { date } = req.query;
+router.get("/details", checkAuth("login"), checkValidity({ "dateField": ["fullDate"]}), endRequestHandler(async (req, res, next) => {
+    const { fullDate } = req.query;
 
-    const year = date.substring(0, 4);
-    const month = date.substring(4, 6);
-    const day =  date.substring(6, 8)
+    const year = fullDate.substring(0, 4);
+    const month = fullDate.substring(4, 6);
+    const day = fullDate.substring(6, 8)
 
     // 빈 리스트 초기화
     const scheduleList = [];
@@ -202,7 +202,7 @@ router.get("/details", checkAuth("login"), endRequestHandler(async (req, res, ne
 }))
 
 // 스케줄 검색
-router.get("/searches", checkAuth("login"), endRequestHandler(async (req, res, next) => {
+router.get("/searches", checkAuth("login"), checkValidity({ "stringField": ["interestContents"] }),endRequestHandler(async (req, res, next) => {
     const { startDate, endDate, content } = req.query;
 
     // 빈 리스트 초기화
@@ -225,8 +225,8 @@ router.get("/searches", checkAuth("login"), endRequestHandler(async (req, res, n
         AND interest_schedule.contents ILIKE '%' || $3 || '%'
     `, [startDate, endDate, content]);
 
-     // 스케줄이 없는 경우
-     if (personalScheduleList.length === 0 && interestScheduleList.length === 0) return res.sendStatus(204);
+    // 스케줄이 없는 경우
+    if (personalScheduleList.length === 0 && interestScheduleList.length === 0) return res.sendStatus(204);
 
     // 개인 스케줄을 리스트에 추가
     personalScheduleList.forEach(schedule => {
@@ -354,31 +354,39 @@ router.delete("/interest/:idx/notify", checkAuth("login"), checkValidity({"numbe
 }))
 
 // 스케줄 생성
-router.post("/", checkAuth("login"), endRequestHandler(async (req, res, next) => {
-    const { dateTime, contents } = req.body;
+router.post("/", checkAuth("login"), checkValidity({ "dateField": ["fullDate"], "stringField": ["personalContents"] }), endRequestHandler(async (req, res, next) => {
+    const { fullDate, personalContents } = req.body;
     const loginUser = req.decoded;
 
     await psql.query(`
         INSERT INTO calenduck.personal_schedule (user_idx, time, contents)
         VALUES ($1, $2, $3)
-    `, [loginUser, dateTime, contents]);
+    `, [loginUser, fullDate, personalContents]);
 
     return res.sendStatus(201);
 }))
 
 // 스케줄 수정
-router.put("/:idx", checkAuth("login"), checkValidity({"numberField": ["idx"] }), endRequestHandler(async (req, res, next) => {
-    const { dateTime, contents } = req.body;
+router.put("/:idx", checkAuth("login"), checkValidity({ "dateField": ["fullDate"], "stringField": ["personalContents"], "numberField": ["idx"] }), endRequestHandler(async (req, res, next) => {
+    const { fullDate, personalContents } = req.body;
     const { idx } = req.params;
     const loginUser = req.decoded;
 
-    const personalSchedule = await psql.query(`
+    // 스케줄 존재 여부 확인 
+    const personalSchedule = await getOneResult(`
+        SELECT 1
+        FROM calenduck.personal_schedule
+        WHERE idx = $1
+    `, [idx]);
+
+    if (!personalSchedule) return next(new NotFoundException());
+
+    //스케줄 수정
+    await psql.query(`
         UPDATE calenduck.personal_schedule
         SET time = $1, contents = $2
         WHERE idx = $3 AND user_idx = $4 
-    `, [dateTime, contents, idx, loginUser]);
-
-    if (personalSchedule.length === 0) return res.sendStatus(404);
+    `, [fullDate, personalContents, idx, loginUser]);
 
     return res.sendStatus(201);
 }))
@@ -387,6 +395,15 @@ router.put("/:idx", checkAuth("login"), checkValidity({"numberField": ["idx"] })
 router.delete("/:idx", checkAuth("login"), checkValidity({"numberField": ["idx"] }), endRequestHandler(async (req, res, next) => {
     const { idx } = req.params;
     const loginUser = req.decoded;
+
+    // 스케줄 존재 여부 확인 
+    const personalSchedule = await getOneResult(`
+        SELECT 1
+        FROM calenduck.personal_schedule
+        WHERE idx = $1
+    `, [idx]);
+
+    if (!personalSchedule) return next(new NotFoundException());
 
     await psql.query(`
         DELETE FROM calenduck.personal_schedule
