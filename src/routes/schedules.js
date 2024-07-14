@@ -354,14 +354,14 @@ router.delete("/interest/:idx/notify", checkAuth("login"), checkValidity({"numbe
 }))
 
 // 스케줄 생성
-router.post("/", checkAuth("login"), endRequestHandler(async (req, res, next) => {
-    const { dateTime, contents } = req.body;
+router.post("/", checkAuth("login"), checkValidity({ "dateField": ["fullDate"], "stringField": ["personalContents"] }), endRequestHandler(async (req, res, next) => {
+    const { fullDate, personalContents } = req.body;
     const loginUser = req.decoded;
 
     await psql.query(`
         INSERT INTO calenduck.personal_schedule (user_idx, time, contents)
         VALUES ($1, $2, $3)
-    `, [loginUser, dateTime, contents]);
+    `, [loginUser, fullDate, personalContents]);
 
     return res.sendStatus(201);
 }))
