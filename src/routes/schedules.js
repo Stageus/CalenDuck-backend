@@ -202,7 +202,7 @@ router.get("/details", checkAuth("login"), checkValidity({ "dateField": ["fullDa
 }))
 
 // 스케줄 검색
-router.get("/searches", checkAuth("login"), endRequestHandler(async (req, res, next) => {
+router.get("/searches", checkAuth("login"), checkValidity({ "stringField": ["interestContents"] }),endRequestHandler(async (req, res, next) => {
     const { startDate, endDate, content } = req.query;
 
     // 빈 리스트 초기화
@@ -225,8 +225,8 @@ router.get("/searches", checkAuth("login"), endRequestHandler(async (req, res, n
         AND interest_schedule.contents ILIKE '%' || $3 || '%'
     `, [startDate, endDate, content]);
 
-     // 스케줄이 없는 경우
-     if (personalScheduleList.length === 0 && interestScheduleList.length === 0) return res.sendStatus(204);
+    // 스케줄이 없는 경우
+    if (personalScheduleList.length === 0 && interestScheduleList.length === 0) return res.sendStatus(204);
 
     // 개인 스케줄을 리스트에 추가
     personalScheduleList.forEach(schedule => {
