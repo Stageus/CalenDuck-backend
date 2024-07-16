@@ -5,7 +5,7 @@ require("dotenv").config();
 const mongoose = require("./database/connect/mongodb");
 const cookieParser = require("cookie-parser");
 const errorHandler = require("./src/middlewares/errorHandler");
-// const interceptor = require("./src/middlewares/interceptor");
+const interceptor = require("./src/middlewares/interceptor");
 const notFoundApi = require("./src/middlewares/notFoundApi");
 const limiter = require("./src/middlewares/apiLimiter");
 
@@ -27,6 +27,7 @@ app.use(cors({
 mongoose();
 app.use(cookieParser());
 app.use(limiter);
+app.use(interceptor);
 
 app.use("/auth", authApi);
 app.use("/managers", managersApi);
@@ -36,7 +37,6 @@ app.use("/schedules", schedulesApi);
 app.use("/users", usersApi);
 app.use("/interests", interestsApi);
 
-// app.use(interceptor);
 app.use(notFoundApi);
 app.use(errorHandler);
 
