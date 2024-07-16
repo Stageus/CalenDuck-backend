@@ -77,7 +77,9 @@ const checkValidity = (data) => {
                 if (typeKey === "dateField") { // 날짜 정규식 처리 및 parseInt 처리 후 넘김
                     const dateRegexObj = {
                         "fullDate": FULL_DATE_REGEX,
-                        "yearMonth": YEAR_MONTH_REGEX
+                        "yearMonth": YEAR_MONTH_REGEX,
+                        "startDate": FULL_DATE_REGEX,
+                        "endDate": FULL_DATE_REGEX
                     }
 
                     if (item in dateRegexObj && !dateRegexObj[item].test(value)) {
