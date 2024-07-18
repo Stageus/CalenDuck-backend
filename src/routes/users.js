@@ -52,7 +52,7 @@ router.post("/id/find", checkAuth("findId"), endRequestHandler(async (req, res, 
       WHERE CU.email = $1
     `, [email]);
 
-    if (!user) return next(new UnauthorizedException());
+    if (!user) return next(new UnauthorizedException("아이디 찾기 실패"));
 
     return res.status(200).send({
       id: user.id,
@@ -72,7 +72,7 @@ router.post("/pw/find", checkAuth("findPw"), endRequestHandler(async (req, res, 
         WHERE CU.email = $1 AND CL.id = $2
     `, [email, id]);
 
-    if (!user) return next(new UnauthorizedException());
+    if (!user) return next(new UnauthorizedException("비밀번호 찾기 실패"));
 
     return res.sendStatus(201);
   })
