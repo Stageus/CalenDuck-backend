@@ -1,5 +1,7 @@
 const notificationSchema = require("../../database/mongooseSchema/notificationSchema");
 
+const { IMPORT, REPLY, MANAGER } = require("../constants");
+
 /**
  *
  * @param {number} receiverIdx
@@ -15,14 +17,14 @@ const makeNotification = async (receiverIdx, type, inputData) => {
     data: {},
   };
 
-  if (type === "import") {
+  if (type === IMPORT) {
     notificationData.data.contents = inputData.contents;
     if (inputData.interest) {
       notificationData.data.interest = inputData.interest;
     }
-  } else if (type === "manager") {
+  } else if (type === MANAGER) {
     notificationData.data.interest = inputData.interest;
-  } else if (type === "reply") {
+  } else if (type === REPLY) {
     notificationData.data.title = inputData.title;
     notificationData.data.reply = inputData.reply;
   }
