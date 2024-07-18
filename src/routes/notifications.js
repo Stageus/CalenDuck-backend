@@ -16,8 +16,9 @@ router.get("/", checkAuth("login"), checkValidity({"numberField": ["page"]}), en
 
     const notificationList = await notificationSchema
         .aggregate([
-          { $match: { user_idx: loginUser.idx, is_read: false}},
+          { $match: { user_idx: loginUser.idx}},
           {$project: {
+            type: "$type",
             date: "$created_at",
             content: "$data.contents",
             interestName: "$data.interest",
