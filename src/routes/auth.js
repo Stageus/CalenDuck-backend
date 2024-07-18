@@ -4,7 +4,7 @@ const crypto = require("crypto");
 
 const checkValidity = require("../middlewares/checkValidity");
 
-const { ID_REGEX, RANGE, MIN } = require("../constants");
+const { ID_REGEX, RANGE, MIN, SIGNUP, FIND_ID, FIND_PW } = require("../constants");
 
 const { 
     ConflictException,
@@ -61,7 +61,7 @@ router.post("/email", checkValidity({"authField": ["email"]}), endRequestHandler
 
       return res.sendStatus(201);
     } catch (err) {
-      throw next(err);
+      throw err;
     } finally {
       await redis.disconnect();
     }
@@ -72,7 +72,7 @@ router.post("/email", checkValidity({"authField": ["email"]}), endRequestHandler
 router.post("/check-code", checkValidity({"authField": ["email"], "codeField": ["code"]}), endRequestHandler(async (req, res, next) => {
   const { email, code, pageType, id } = req.body;
 
-  const validTypes = ["signup", "findId", "findPw"];
+  const validTypes = [SIGNUP, FIND_ID, FIND_PW];
 
   if(!validTypes.includes(pageType)) return next(new BadRequestException());
 
@@ -92,7 +92,7 @@ router.post("/check-code", checkValidity({"authField": ["email"], "codeField": [
         type: pageType 
       } 
 
-    if (pageType === "findPw") {
+    if (pageType === FIND_PW) {
       if (!ID_REGEX.test(id)) {
         return next(new BadRequestException());
       }
@@ -104,7 +104,9 @@ router.post("/check-code", checkValidity({"authField": ["email"], "codeField": [
     res.cookie("access_token", emailToken);
     res.sendStatus(201);
   }catch(err){
-    return next(err);
+    throw err;
+  }finally {
+    await redis.disconnect();
   }
 }))
 

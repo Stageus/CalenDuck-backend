@@ -13,7 +13,8 @@ const MAX_LENGTH_100_REGEX = /^.{1,100}$/;
 const MAX_LENGTH_300_REGEX = /^.{1,300}$/;
 
 // /notification
-const PAGE_SIZE = 20;
+const IMPORT = "import";
+const REPLY = "reply";
 
 // /auth
 const MIN = 100000;
