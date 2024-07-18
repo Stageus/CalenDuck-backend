@@ -51,7 +51,7 @@ router.get("/", checkAuth("login"), endRequestHandler(async (req, res, next) => 
 
 //관심사 추가
 router.post("/:idx", checkAuth("login"), checkValidity({"numberField": ["idx"]}), endRequestHandler(async (req, res, next) => {
-    const { idx: interestIdx = null } = req.params;
+    const { idx: interestIdx } = req.params;
     const loginUser = req.decoded;
 
     await psql.query(`
@@ -65,12 +65,12 @@ router.post("/:idx", checkAuth("login"), checkValidity({"numberField": ["idx"]})
 
 //내 관심사 삭제
 router.delete("/:idx", checkAuth("login"), checkValidity({"numberField": ["idx"]}), endRequestHandler(async (req, res, next) => {
-    const { idx: interestIdx = null } = req.params;
+    const { idx: interestIdx } = req.params;
     const loginUser = req.decoded;
     
     const userInterest = await getOneResult(`
       DELETE FROM calenduck.user_interest 
-      WHERE user_idx = $1 AND interest_idx= $2
+      WHERE user_idx = $1 AND interest_idx = $2
       RETURNING interest_idx
     `, [loginUser.idx, interestIdx]);
 
