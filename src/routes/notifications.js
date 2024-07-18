@@ -5,15 +5,14 @@ const notificationSchema = require("../../database/mongooseSchema/notificationSc
 const checkAuth = require("../middlewares/checkAuth");
 const checkValidity = require("../middlewares/checkValidity");
 
-const { PAGE_SIZE } = require("../constants");
-
 const endRequestHandler = require("../modules/endRequestHandler");
 
 //알림 목록 불러오기
 router.get("/", checkAuth("login"), checkValidity({"numberField": ["page"]}), endRequestHandler(async (req, res, next) => {
     const loginUser = req.decoded;
     const { page } = req.body;
-    const skipAmount = (page - 1) * PAGE_SIZE;
+    const pageSize = 20;
+    const skipAmount = (page - 1) * pageSize;
 
     const notificationList = await notificationSchema
         .aggregate([
@@ -28,7 +27,7 @@ router.get("/", checkAuth("login"), checkValidity({"numberField": ["page"]}), en
           }}
         ]).sort({ date: "desc" })
           .skip(skipAmount)
-          .limit(PAGE_SIZE);
+          .limit(pageSize);
 
     if (!notificationList || notificationList.length === 0) {
       return res.sendStatus(204);
