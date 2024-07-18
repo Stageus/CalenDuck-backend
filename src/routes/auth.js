@@ -83,7 +83,7 @@ router.post("/check-code", checkValidity({"authField": ["email"], "codeField": [
     const verifiCode = await redis.get(email);
 
     if (!verifiCode || verifiCode !== code) {
-      return next(new UnauthorizedException());
+      return next(new UnauthorizedException("이메일 인증 실패"));
     }
 
     const tokenPayload = 
