@@ -13,8 +13,9 @@ const MAX_LENGTH_100_REGEX = /^.{1,100}$/;
 const MAX_LENGTH_300_REGEX = /^.{1,300}$/;
 
 // /notification
-const IMPORT = "import";
-const REPLY = "reply";
+const IMPORT_NOTI = 0;
+const MANAGER_NOTI = 1;
+const REPLY_NOTI = 2;
 
 // /auth
 const MIN = 100000;
@@ -54,5 +55,8 @@ module.exports = {
     YEAR_MONTH_REGEX,
     MAX_LENGTH_50_REGEX,
     MAX_LENGTH_100_REGEX,
-    MAX_LENGTH_300_REGEX
+    MAX_LENGTH_300_REGEX,
+    IMPORT_NOTI,
+    MANAGER_NOTI,
+    REPLY_NOTI
 };
