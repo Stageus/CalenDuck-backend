@@ -40,7 +40,6 @@ module.exports = {
     WHITESPACE_REGEX,
     PARAM_REGEX,
     CODE_REGEX,
-    PAGE_SIZE,
     MIN,
     MAX,
     RANGE,
