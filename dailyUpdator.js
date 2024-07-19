@@ -3,8 +3,11 @@ require("dotenv").config();
 const uri = process.env.MONGODB_URI;
 
 const notificationSchema = require("./database/mongooseSchema/notificationSchema");
+
 const makeNotification = require("./src/modules/makeNotification");
 const { getManyResults } = require("./src/modules/sqlHandler");
+
+const { IMPORT_NOTI } = require("./src/constants");
 
 mongoose
   .connect(uri)
@@ -43,17 +46,16 @@ const dailyUpdator = async() => {
     `, [startOfTomorrow, endOfTomorrow]);
 
     for (const schedule of personalSchedules) {
-      await makeNotification(schedule.user_idx, "import", {
+      await makeNotification(schedule.user_idx, IMPORT_NOTI, {
         contents: schedule.contents,
       });
     }
     for (const schedule of interestSchedules) {
-      await makeNotification(schedule.user_idx, "import", {
+      await makeNotification(schedule.user_idx, IMPORT_NOTI, {
         interest: schedule.interest,
         contents: schedule.contents,
       });
     }
-
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     await notificationSchema.deleteMany({ created_at: { $lt: thirtyDaysAgo }});
