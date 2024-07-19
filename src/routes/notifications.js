@@ -7,8 +7,10 @@ const checkValidity = require("../middlewares/checkValidity");
 
 const endRequestHandler = require("../modules/endRequestHandler");
 
+const { LOGIN } = require("../constants");
+
 //알림 목록 불러오기
-router.get("/", checkAuth("login"), checkValidity({"numberField": ["page"]}), endRequestHandler(async (req, res, next) => {
+router.get("/", checkAuth(LOGIN), checkValidity({"numberField": ["page"]}), endRequestHandler(async (req, res, next) => {
     const loginUser = req.decoded;
     const { page } = req.body;
     const pageSize = 20;
@@ -24,7 +26,6 @@ router.get("/", checkAuth("login"), checkValidity({"numberField": ["page"]}), en
             interestName: "$data.interest",
             titie: "$data.title",
             reply: "$data.reply",
-            _id: 0
           }}
         ]).sort({ date: "desc" })
           .skip(skipAmount)
@@ -46,7 +47,7 @@ router.get("/", checkAuth("login"), checkValidity({"numberField": ["page"]}), en
 );
 
 //신규 알림 개수 불러오기
-router.get("/counts", checkAuth("login"), endRequestHandler(async (req, res, next) => {
+router.get("/counts", checkAuth(LOGIN), endRequestHandler(async (req, res, next) => {
     const loginUser = req.decoded;
 
     const count = await notificationSchema.countDocuments({

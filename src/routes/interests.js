@@ -5,15 +5,18 @@ const psql = require("../../database/connect/postgre");
 const checkAuth = require("../middlewares/checkAuth");
 const checkValidity = require("../middlewares/checkValidity");
 
+const { NotFoundException } = require("../model/customException");
+
 const {
     getManyResults,
     getOneResult
 } = require("../modules/sqlHandler");
 const endRequestHandler = require("../modules/endRequestHandler");
-const { NotFoundException } = require("../model/customException");
+
+const { LOGIN } = require("../constants");
 
 // 관심사 목록 불러오기
-router.get("/all", checkAuth("login"), endRequestHandler(async (req, res, next) => {
+router.get("/all", checkAuth(LOGIN), endRequestHandler(async (req, res, next) => {
     const interestList = await getManyResults(`
         SELECT idx AS "interestIdx", interest AS "interestName"
         FROM calenduck.interest
@@ -30,7 +33,7 @@ router.get("/all", checkAuth("login"), endRequestHandler(async (req, res, next) 
 }))
 
 //내 관심사 불러오기
-router.get("/", checkAuth("login"), endRequestHandler(async (req, res, next) => {
+router.get("/", checkAuth(LOGIN), endRequestHandler(async (req, res, next) => {
     const loginUser = req.decoded;
 
     const interestList = await getManyResults(`
@@ -50,7 +53,7 @@ router.get("/", checkAuth("login"), endRequestHandler(async (req, res, next) => 
 );
 
 //관심사 추가
-router.post("/:idx", checkAuth("login"), checkValidity({"numberField": ["idx"]}), endRequestHandler(async (req, res, next) => {
+router.post("/:idx", checkAuth(LOGIN), checkValidity({"numberField": ["idx"]}), endRequestHandler(async (req, res, next) => {
     const { idx: interestIdx } = req.params;
     const loginUser = req.decoded;
 
@@ -64,7 +67,7 @@ router.post("/:idx", checkAuth("login"), checkValidity({"numberField": ["idx"]})
 );
 
 //내 관심사 삭제
-router.delete("/:idx", checkAuth("login"), checkValidity({"numberField": ["idx"]}), endRequestHandler(async (req, res, next) => {
+router.delete("/:idx", checkAuth(LOGIN), checkValidity({"numberField": ["idx"]}), endRequestHandler(async (req, res, next) => {
     const { idx: interestIdx } = req.params;
     const loginUser = req.decoded;
     
