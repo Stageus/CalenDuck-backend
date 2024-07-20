@@ -14,6 +14,8 @@ const {
   UnauthorizedException,
 } = require("../model/customException");
 
+const { SIGNUP, FIND_ID, FIND_PW, LOGIN } = require("../constants");
+
 //로그인
 router.post("/login", checkValidity({"authField": ["id", "pw"]}), endRequestHandler(async (req, res, next) => {
     const { id, pw } = req.body;
@@ -29,7 +31,7 @@ router.post("/login", checkValidity({"authField": ["id", "pw"]}), endRequestHand
     if (!loginUser) return next(new UnauthorizedException());
 
     const accessToken = makeToken({
-      type: "login",
+      type: LOGIN,
       idx: loginUser.idx,
       rank: loginUser.role,
     });
@@ -41,7 +43,7 @@ router.post("/login", checkValidity({"authField": ["id", "pw"]}), endRequestHand
 );
 
 //아이디 찾기
-router.post("/id/find", checkAuth("findId"), endRequestHandler(async (req, res, next) => {
+router.post("/id/find", checkAuth(FIND_ID), endRequestHandler(async (req, res, next) => {
     const email = req.decoded.email;
 
     const user = await getOneResult(`
@@ -52,7 +54,7 @@ router.post("/id/find", checkAuth("findId"), endRequestHandler(async (req, res, 
       WHERE CU.email = $1
     `, [email]);
 
-    if (!user) return next(new UnauthorizedException());
+    if (!user) return next(new UnauthorizedException("아이디 찾기 실패"));
 
     return res.status(200).send({
       id: user.id,
@@ -61,7 +63,7 @@ router.post("/id/find", checkAuth("findId"), endRequestHandler(async (req, res, 
 );
 
 //비밀번호 찾기
-router.post("/pw/find", checkAuth("findPw"), endRequestHandler(async (req, res, next) => {
+router.post("/pw/find", checkAuth(FIND_PW), endRequestHandler(async (req, res, next) => {
     const { email, id } = req.decoded;
 
     const user = await getOneResult(`
@@ -72,14 +74,14 @@ router.post("/pw/find", checkAuth("findPw"), endRequestHandler(async (req, res, 
         WHERE CU.email = $1 AND CL.id = $2
     `, [email, id]);
 
-    if (!user) return next(new UnauthorizedException());
+    if (!user) return next(new UnauthorizedException("비밀번호 찾기 실패"));
 
     return res.sendStatus(201);
   })
 );
 
 //비밀번호 재설정
-router.put("/pw", checkAuth("findPw"), checkValidity({"authField": ["pw"]}), endRequestHandler(async (req, res, next) => {
+router.put("/pw", checkAuth(FIND_PW), checkValidity({"authField": ["pw"]}), endRequestHandler(async (req, res, next) => {
     const { pw } = req.body;
     const { email } = req.decoded;
 
@@ -101,7 +103,7 @@ router.get("/check-id", checkValidity({"authField": ["id"]}), checkDuplicatedId,
 );
 
 //회원가입
-router.post("/", checkAuth("signup"), checkValidity({"authField": ["id", "pw", "nickname"]}), checkDuplicatedId, endRequestHandler(async (req, res, next) => {
+router.post("/", checkAuth(SIGNUP), checkValidity({"authField": ["id", "pw", "nickname"]}), checkDuplicatedId, endRequestHandler(async (req, res, next) => {
     const { id, pw, nickname } = req.body;
     const email = req.decoded.email;
 
@@ -134,7 +136,7 @@ router.post("/", checkAuth("signup"), checkValidity({"authField": ["id", "pw", "
 );
 
 //회원 탈퇴
-router.delete("/", checkAuth("login"), endRequestHandler(async (req, res, next) => {
+router.delete("/", checkAuth(LOGIN), endRequestHandler(async (req, res, next) => {
     const loginUser = req.decoded;
 
     const user = await getOneResult(`
