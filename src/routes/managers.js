@@ -15,6 +15,8 @@ const {
 } = require("../modules/sqlHandler");
 const endRequestHandler = require("../modules/endRequestHandler");
 
+const { MANAGER } = require("../constants");
+
 // 관심사 스케줄 생성
 router.post("/schedules/interests", checkAuth(MANAGER), checkValidity({ "dateField": ["fullDate"], "stringField": ["interestContents"] }), endRequestHandler(async (req, res, next) => {
     const { fullDate, interestContents } = req.body
