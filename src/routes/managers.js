@@ -16,7 +16,7 @@ const {
 const endRequestHandler = require("../modules/endRequestHandler");
 
 // 관심사 스케줄 생성
-router.post("/schedules/interests", checkAuth("manager"), checkValidity({ "dateField": ["fullDate"], "stringField": ["interestContents"] }), endRequestHandler(async (req, res, next) => {
+router.post("/schedules/interests", checkAuth(MANAGER), checkValidity({ "dateField": ["fullDate"], "stringField": ["interestContents"] }), endRequestHandler(async (req, res, next) => {
     const { fullDate, interestContents } = req.body
     
     await psql.query(`
@@ -28,7 +28,7 @@ router.post("/schedules/interests", checkAuth("manager"), checkValidity({ "dateF
 }))
 
 // 관심사 스케줄 수정
-router.put("/schedules/interests/:idx", checkAuth("master"), checkValidity({ "dateField": ["fullDate"], "stringField": ["interestContents"], "numberField": ["idx"] }), endRequestHandler(async (req, res, next) => {
+router.put("/schedules/interests/:idx", checkAuth(MANAGER), checkValidity({ "dateField": ["fullDate"], "stringField": ["interestContents"], "numberField": ["idx"] }), endRequestHandler(async (req, res, next) => {
     const { fullDate, interestContents } = req.body;
     const { idx } = req.params;
 
@@ -52,7 +52,7 @@ router.put("/schedules/interests/:idx", checkAuth("master"), checkValidity({ "da
 }))
 
 // 관심사 스케줄 삭제
-router.put("/schedules/interests/:idx", checkAuth("master"), checkValidity({ "numberField": ["idx"] }), endRequestHandler(async (req, res, next) => {
+router.put("/schedules/interests/:idx", checkAuth(MANAGER), checkValidity({ "numberField": ["idx"] }), endRequestHandler(async (req, res, next) => {
     const { idx } = req.params;
 
     // 스케줄 존재 여부 확인
