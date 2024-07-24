@@ -242,10 +242,30 @@ router.put("/managers/assignment", checkAuth("master"), checkValidity({ "numberF
 router.delete("/interest/:idx", checkAuth("master"), checkValidity({ "numberField": ["idx"] }), endRequestHandler(async (req, res, next) => {
     const interestIdx = req.params.idx;
 
-    await psql.query(`
+    const manager = await getOneResult(`
+        SELECT user_idx FROM calenduck.manager
+        WHERE interest_idx = $1
+    `, [interestIdx]);
+
+    if (!manager) { // null인 경우 바로 응답.
+        return res.sendStatus(201);
+    }
+
+    const psqlClient = await psql.connect();
+
+    await psqlClient.query("BEGIN");
+
+    await psqlClient.query(`
         DELETE FROM calenduck.interest
         WHERE idx = $1
     `, [interestIdx]);
+    await psqlClient.query(`
+        UPDATE calenduck.user
+        SET role = 'general'
+        WHERE idx = $1
+    `, [manager.user_idx]);
+
+    await psqlClient.query("COMMIT");
 
     return res.sendStatus(201);
 }))
@@ -255,7 +275,7 @@ router.delete("/managers/:idx/permission", checkAuth("master"), checkValidity({ 
     const managerIdx = req.params.idx;
 
     const manager = await getOneResult(`
-        SELECT 1 FROM calenduck.manager
+        SELECT interest_idx FROM calenduck.manager
         WHERE user_idx = $1
     `, [managerIdx]);
 
