@@ -17,7 +17,7 @@ const {
 const endRequestHandler = require("../modules/endRequestHandler");
 
 // 특정 년월 스케줄 전체 불러오기
-router.get("/", checkAuth("login"), checkValidity({ "dateField": ["yearMonth"] }), endRequestHandler(async (req, res, next) => {
+router.get("/", checkAuth(LOGIN), checkValidity({ "dateField": ["yearMonth"] }), endRequestHandler(async (req, res, next) => {
     const { yearMonth } = req.query;
 
     const year = yearMonth.substring(0, 4);
@@ -69,7 +69,7 @@ router.get("/", checkAuth("login"), checkValidity({ "dateField": ["yearMonth"] }
 }))
 
 // 특정 년월 특정 관심사 불러오기
-router.get("/interest", checkAuth("login"), checkValidity({ "dateField": ["yearMonth"], "numberField": ["interestIdx"] }), endRequestHandler(async (req, res, next) => {
+router.get("/interest", checkAuth(LOGIN), checkValidity({ "dateField": ["yearMonth"], "numberField": ["interestIdx"] }), endRequestHandler(async (req, res, next) => {
     const { yearMonth, interestIdx } = req.query;
 
     const year = yearMonth.substring(0, 4);
@@ -103,7 +103,7 @@ router.get("/interest", checkAuth("login"), checkValidity({ "dateField": ["yearM
 }))
 
 // 특정 날짜에서 특정 관심사 불러오기
-router.get("/details/interest", checkAuth("login"), checkValidity({ "dateField": ["fullDate"], "numberField": ["interestIdx"] }), endRequestHandler(async (req, res, next) => {
+router.get("/details/interest", checkAuth(LOGIN), checkValidity({ "dateField": ["fullDate"], "numberField": ["interestIdx"] }), endRequestHandler(async (req, res, next) => {
     const { fullDate, interestIdx, priority} = req.query;
 
     const year = fullDate.substring(0, 4); 
@@ -144,7 +144,7 @@ router.get("/details/interest", checkAuth("login"), checkValidity({ "dateField":
 }))
 
 // 특정 날짜 스케줄 전체 불러오기
-router.get("/details", checkAuth("login"), checkValidity({ "dateField": ["fullDate"]}), endRequestHandler(async (req, res, next) => {
+router.get("/details", checkAuth(LOGIN), checkValidity({ "dateField": ["fullDate"]}), endRequestHandler(async (req, res, next) => {
     const { fullDate } = req.query;
 
     const year = fullDate.substring(0, 4);
@@ -202,7 +202,7 @@ router.get("/details", checkAuth("login"), checkValidity({ "dateField": ["fullDa
 }))
 
 // 스케줄 검색
-router.get("/searches", checkAuth("login"), checkValidity({ "stringField": ["interestContents"] }),endRequestHandler(async (req, res, next) => {
+router.get("/searches", checkAuth(LOGIN), checkValidity({ "stringField": ["interestContents"] }),endRequestHandler(async (req, res, next) => {
     const { startDate, endDate, content } = req.query;
 
     // 빈 리스트 초기화
@@ -258,7 +258,7 @@ router.get("/searches", checkAuth("login"), checkValidity({ "stringField": ["int
 }))
 
 // 스케줄 중요 알림 설정 추가하기
-router.post(":idx/notify", checkAuth("login"), checkValidity({"numberField": ["idx"] }), endRequestHandler(async (req, res, next) => {
+router.post(":idx/notify", checkAuth(LOGIN), checkValidity({"numberField": ["idx"] }), endRequestHandler(async (req, res, next) => {
     const { idx } = req.params;
 
     // 해당 스케줄의 현재 priority 값 조회
@@ -282,7 +282,7 @@ router.post(":idx/notify", checkAuth("login"), checkValidity({"numberField": ["i
 }))
 
 // 스케줄 중요 알림 설정 삭제하기
-router.delete(":idx/notify", checkAuth("login"), checkValidity({"numberField": ["idx"] }), endRequestHandler(async (req, res, next) => {
+router.delete(":idx/notify", checkAuth(LOGIN), checkValidity({"numberField": ["idx"] }), endRequestHandler(async (req, res, next) => {
     const { idx } = req.params;
 
     // 해당 스케줄의 현재 priority 값 조회
@@ -306,7 +306,7 @@ router.delete(":idx/notify", checkAuth("login"), checkValidity({"numberField": [
 }))
 
 // 관심사 스케줄 중요 알림 설정 추가하기
-router.post("/interest/:idx/notify", checkAuth("login"), checkValidity({"numberField": ["idx"] }), endRequestHandler(async (req, res, next) => {
+router.post("/interest/:idx/notify", checkAuth(LOGIN), checkValidity({"numberField": ["idx"] }), endRequestHandler(async (req, res, next) => {
     const { idx } = req.params;
 
     // 해당 관심사 스케줄의 현재 priority 값 조회
@@ -330,7 +330,7 @@ router.post("/interest/:idx/notify", checkAuth("login"), checkValidity({"numberF
 }))
 
 // 관심사 스케줄 중요 알림 설정 삭제하기
-router.delete("/interest/:idx/notify", checkAuth("login"), checkValidity({"numberField": ["idx"] }), endRequestHandler(async (req, res, next) => {
+router.delete("/interest/:idx/notify", checkAuth(LOGIN), checkValidity({"numberField": ["idx"] }), endRequestHandler(async (req, res, next) => {
     const { idx } = req.params;
 
     // 해당 관심사 스케줄의 현재 priority 값 조회
@@ -354,7 +354,7 @@ router.delete("/interest/:idx/notify", checkAuth("login"), checkValidity({"numbe
 }))
 
 // 스케줄 생성
-router.post("/", checkAuth("login"), checkValidity({ "dateField": ["fullDate"], "stringField": ["personalContents"] }), endRequestHandler(async (req, res, next) => {
+router.post("/", checkAuth(LOGIN), checkValidity({ "dateField": ["fullDate"], "stringField": ["personalContents"] }), endRequestHandler(async (req, res, next) => {
     const { fullDate, personalContents } = req.body;
     const loginUser = req.decoded;
 
@@ -367,7 +367,7 @@ router.post("/", checkAuth("login"), checkValidity({ "dateField": ["fullDate"], 
 }))
 
 // 스케줄 수정
-router.put("/:idx", checkAuth("login"), checkValidity({ "dateField": ["fullDate"], "stringField": ["personalContents"], "numberField": ["idx"] }), endRequestHandler(async (req, res, next) => {
+router.put("/:idx", checkAuth(LOGIN), checkValidity({ "dateField": ["fullDate"], "stringField": ["personalContents"], "numberField": ["idx"] }), endRequestHandler(async (req, res, next) => {
     const { fullDate, personalContents } = req.body;
     const { idx } = req.params;
     const loginUser = req.decoded;
@@ -392,7 +392,7 @@ router.put("/:idx", checkAuth("login"), checkValidity({ "dateField": ["fullDate"
 }))
 
 // 스케줄 삭제
-router.delete("/:idx", checkAuth("login"), checkValidity({"numberField": ["idx"] }), endRequestHandler(async (req, res, next) => {
+router.delete("/:idx", checkAuth(LOGIN), checkValidity({"numberField": ["idx"] }), endRequestHandler(async (req, res, next) => {
     const { idx } = req.params;
     const loginUser = req.decoded;
 
