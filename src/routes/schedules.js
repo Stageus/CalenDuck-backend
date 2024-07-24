@@ -16,6 +16,8 @@ const {
 } = require("../modules/sqlHandler");
 const endRequestHandler = require("../modules/endRequestHandler");
 
+const { MANAGER } = require("../constants");
+
 // 특정 년월 스케줄 전체 불러오기
 router.get("/", checkAuth(LOGIN), checkValidity({ "dateField": ["yearMonth"] }), endRequestHandler(async (req, res, next) => {
     const { yearMonth } = req.query;
