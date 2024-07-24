@@ -3,7 +3,7 @@ const Schema = mongoose.Schema;
 
 const loggingSchema = new mongoose.Schema({
   user_idx: {
-    type: Number,
+    type: String,
     required: true,
   },
   api: {
