@@ -8,7 +8,8 @@ const {
     WHITESPACE_REGEX,
     PARAM_REGEX,
     CODE_REGEX,
-    FULL_DATE_REGEX,
+    DATE_REGEX,
+    DATE_TIME_REGEX,
     YEAR_MONTH_REGEX,
     MAX_LENGTH_50_REGEX,
     MAX_LENGTH_100_REGEX,
@@ -76,10 +77,10 @@ const checkValidity = (data) => {
                 }
                 if (typeKey === "dateField") { // 날짜 정규식 처리 및 parseInt 처리 후 넘김
                     const dateRegexObj = {
-                        "fullDate": FULL_DATE_REGEX,
+                        "fullDate": DATE_TIME_REGEX,
                         "yearMonth": YEAR_MONTH_REGEX,
-                        "startDate": FULL_DATE_REGEX,
-                        "endDate": FULL_DATE_REGEX
+                        "startDate": DATE_REGEX,
+                        "endDate": DATE_REGEX
                     }
 
                     if (item in dateRegexObj && !dateRegexObj[item].test(value)) {
