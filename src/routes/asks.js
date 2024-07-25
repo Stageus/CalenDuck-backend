@@ -24,9 +24,7 @@ router.get("/category", checkAuth("login"), endRequestHandler(async (req, res, n
         ORDER BY idx ASC
     `);
 
-    if (askCategoryList.length === 0) {
-        return res.sendStatus(204);
-    }
+    if (askCategoryList.length === 0) return res.sendStatus(204);
 
     return res.status(200).send({
         list: askCategoryList
@@ -43,9 +41,7 @@ router.post("/", checkAuth("login"), checkValidity({ "stringField": ["askTitle",
         WHERE idx = $1
     `, [categoryIdx]);
 
-    if (!askCategory) {
-        return next(new NotFoundException());
-    }
+    if (!askCategory) return next(new NotFoundException());
 
     await psql.query(`
         INSERT INTO calenduck.ask(user_idx, ask_category_idx, askTitle, askContents)
