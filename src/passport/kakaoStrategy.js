@@ -30,7 +30,7 @@ module.exports = () => {
         new KakaoStrategy(
             {
                 clientID: process.env.KAKAO_ID, // 카카오 로그인에서 발급받은 REST API 키
-                callbackURL: "/oauth/kakao/callback", // 카카오 로그인 Redirect URI 경로
+                callbackURL: "/users/kakao/callback", // 카카오 로그인 Redirect URI 경로
             },
 
             async (accessToken, refreshToken, profile, done) => {
