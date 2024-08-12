@@ -29,8 +29,8 @@ app.use(session({
   checkPeriod: 30 * 60 * 1000
 }));
 app.use(cors({
-  origin: ["http://calenduck.site", "https://calenduck.site", "https://d2b6dw8a7unc3s.cloudfront.net/", "http://d2b6dw8a7unc3s.cloudfront.net/"]
-}))
+  origin: ["http://calenduck.site", "https://calenduck.site", "https://d2b6dw8a7unc3s.cloudfront.net/", "http://d2b6dw8a7unc3s.cloudfront.net/", "http://localhost:3000"]
+}));
 mongoose();
 app.use(cookieParser());
 app.use(limiter);
