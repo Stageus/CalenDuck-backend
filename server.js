@@ -22,7 +22,8 @@ const port = process.env.HTTP_PORT;
 
 app.use(express.json());
 app.use(cors({
-  origin: ["http://calenduck.site", "https://calenduck.site", "https://d2b6dw8a7unc3s.cloudfront.net/", "http://d2b6dw8a7unc3s.cloudfront.net/"]
+  origin: ["http://calenduck.site", "https://calenduck.site", "https://d2b6dw8a7unc3s.cloudfront.net/", "http://d2b6dw8a7unc3s.cloudfront.net/"],
+  credentials: true
 }))
 mongoose();
 app.use(cookieParser());
