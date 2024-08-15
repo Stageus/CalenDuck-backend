@@ -36,7 +36,10 @@ router.post("/login", checkValidity({"authField": ["id", "pw"]}), endRequestHand
       rank: loginUser.role,
     });
 
-    res.cookie("access_token", accessToken);
+    res.cookie("access_token", accessToken, {
+      sameSite: "none",
+      secure: true
+    });
 
     return res.sendStatus(201);
   })
