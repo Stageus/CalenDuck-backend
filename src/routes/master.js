@@ -23,9 +23,7 @@ router.get("/users", checkAuth("master"), endRequestHandler(async (req, res, nex
         ORDER BY nickname ASC
     `);
 
-    if (userList.length === 0) {
-        return res.sendStatus(204);
-    }
+    if (userList.length === 0) return res.sendStatus(204);
 
     return res.status(200).send({
         list: userList
@@ -41,9 +39,7 @@ router.get("/interests", checkAuth("master"), endRequestHandler(async (req, res,
         ORDER BY interest ASC
     `)
 
-    if (interestList.length === 0) {
-        return res.sendStatus(204);
-    }
+    if (interestList.length === 0) return res.sendStatus(204);
 
     return res.status(200).send({
         list: interestList
@@ -62,9 +58,7 @@ router.get("/managers", checkAuth("master"), endRequestHandler(async (req, res, 
         ORDER BY CM.user_idx ASC
     `); // manager, user, interest 테이블 join. 정렬은 user_idx 오름차순
 
-    if (managerList.length === 0) {
-        return res.sendStatus(204);
-    }
+    if (managerList.length === 0) return res.sendStatus(204);
 
     return res.status(200).send({
         list: managerList
@@ -83,9 +77,7 @@ router.get("/asks", checkAuth("master"), checkValidity({ "numberField": ["catego
         ORDER BY CA.created_at DESC
     `, [categoryIdx]); // ask, user 테이블 join. 정렬은 최신순
 
-    if (askList.length === 0) {
-        return res.sendStatus(204);
-    }
+    if (askList.length === 0) return res.sendStatus(204);
 
     return res.status(200).send({
         list: askList
@@ -115,9 +107,7 @@ router.post("/users/permission", checkAuth("master"), checkValidity({ "numberFie
         WHERE CU.idx = $1 AND CI.idx = $2
     `, [userIdx, interestIdx]); // userIdx와 interestIdx가 있는지 확인하기 위해서 cross join 후 확인. 알림을 위해서 interest 받기.
 
-    if (!userAndInterest) {
-        return next(new NotFoundException());
-    }
+    if (!userAndInterest) return next(new NotFoundException());
 
     const psqlClient = await psql.connect();
     await psqlClient.query("BEGIN");
@@ -154,9 +144,7 @@ router.post("/users/asks/:idx/reply", checkAuth("master"), checkValidity({ "stri
         WHERE idx = $1
     `, [askIdx]); // 문의가 존재하는지 확인
 
-    if (!ask) {
-        return next(new NotFoundException());
-    }
+    if (!ask) return next(new NotFoundException());
 
     await psql.query(`
         UPDATE calenduck.ask
@@ -179,9 +167,7 @@ router.put("/interest/:idx", checkAuth("master"), checkValidity({ "stringField":
         WHERE idx = $1
     `, [interestIdx]); // 관심사가 존재하는지 확인
 
-    if (!interest) {
-        return next(new NotFoundException());
-    }
+    if (!interest) return next(new NotFoundException());
 
     await psql.query(`
         UPDATE calenduck.interest
@@ -201,9 +187,7 @@ router.put("/managers/assignment", checkAuth("master"), checkValidity({ "numberF
         WHERE user_idx = $1 AND interest_idx = $2
     `, [beforeManagerIdx, interestIdx]); // 수정하려는 row(manager와 interest)가 존재하는지 확인
 
-    if (!managerAndInterest) {
-        return next(new NotFoundException());
-    }
+    if (!managerAndInterest) return next(new NotFoundException());
 
     const user = await getOneResult(`
         SELECT 1
@@ -211,9 +195,7 @@ router.put("/managers/assignment", checkAuth("master"), checkValidity({ "numberF
         WHERE idx = $1    
     `, [afterManagerIdx]); // 수정되는 manager가 존재하는지 확인
 
-    if (!user) {
-        return next(new NotFoundException());
-    }
+    if (!user) return next(new NotFoundException());
 
     const psqlClient = await psql.connect();
 
@@ -242,10 +224,28 @@ router.put("/managers/assignment", checkAuth("master"), checkValidity({ "numberF
 router.delete("/interest/:idx", checkAuth("master"), checkValidity({ "numberField": ["idx"] }), endRequestHandler(async (req, res, next) => {
     const interestIdx = req.params.idx;
 
-    await psql.query(`
+    const manager = await getOneResult(`
+        SELECT user_idx FROM calenduck.manager
+        WHERE interest_idx = $1
+    `, [interestIdx]);
+
+    if (!manager) return res.sendStatus(201); // null인 경우 바로 응답.
+
+    const psqlClient = await psql.connect();
+
+    await psqlClient.query("BEGIN");
+
+    await psqlClient.query(`
         DELETE FROM calenduck.interest
         WHERE idx = $1
     `, [interestIdx]);
+    await psqlClient.query(`
+        UPDATE calenduck.user
+        SET role = 'general'
+        WHERE idx = $1
+    `, [manager.user_idx]);
+
+    await psqlClient.query("COMMIT");
 
     return res.sendStatus(201);
 }))
@@ -255,13 +255,11 @@ router.delete("/managers/:idx/permission", checkAuth("master"), checkValidity({ 
     const managerIdx = req.params.idx;
 
     const manager = await getOneResult(`
-        SELECT 1 FROM calenduck.manager
+        SELECT interest_idx FROM calenduck.manager
         WHERE user_idx = $1
     `, [managerIdx]);
 
-    if (!manager) { // null인 경우 바로 응답.
-        return res.sendStatus(201);
-    }
+    if (!manager) return res.sendStatus(201); // null인 경우 바로 응답.
 
     const interestIdx = manager.interest_idx;
 
