@@ -101,7 +101,10 @@ router.post("/check-code", checkValidity({"authField": ["email"], "codeField": [
       
     const emailToken = makeToken(tokenPayload);
 
-    res.cookie("access_token", emailToken);
+    res.cookie("access_token", emailToken, {
+      sameSite: "none",
+      secure: true
+    });
     res.sendStatus(201);
   }catch(err){
     throw err;
