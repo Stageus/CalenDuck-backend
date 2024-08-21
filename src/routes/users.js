@@ -24,10 +24,12 @@ router.post("/login", checkValidity({ "authField": ["id", "pw"] }), endRequestHa
   const { id, pw } = req.body;
 
   const loginUser = await getOneResult(`
-    SELECT CU.idx, CU.role
+    SELECT CU.idx, CU.role, CM.interest_idx, CI.interest
     FROM calenduck.login CL
     JOIN calenduck.user CU
     ON CL.idx = CU.login_idx
+    LEFT JOIN calenduck.manager CM ON CU.idx = CM.user_idx
+    LEFT JOIN calenduck.interest CI ON CM.interest_idx = CI.idx
     WHERE CL.id = $1 AND CL.pw = $2
   `, [id, pw]);
 
@@ -37,6 +39,8 @@ router.post("/login", checkValidity({ "authField": ["id", "pw"] }), endRequestHa
     type: LOGIN,
     idx: loginUser.idx,
     rank: loginUser.role,
+    interestIdx: loginUser.interest_idx,
+    interestName: loginUser.interest,
   });
 
   res.cookie("access_token", accessToken, {
