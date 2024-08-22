@@ -12,7 +12,7 @@ const { LOGIN } = require("../constants");
 //알림 목록 불러오기
 router.get("/", checkAuth(LOGIN), checkValidity({"numberField": ["page"]}), endRequestHandler(async (req, res, next) => {
     const loginUser = req.decoded;
-    const { page } = req.body;
+    const  page  = req.query.page;
     const pageSize = 20;
     const skipAmount = (page - 1) * pageSize;
 
