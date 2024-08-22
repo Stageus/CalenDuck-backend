@@ -46,6 +46,21 @@ router.get("/interests", checkAuth("master"), endRequestHandler(async (req, res,
     });
 }))
 
+// 모든 관심사 목록 불러오기
+router.get("/interest/all", checkAuth(LOGIN), endRequestHandler(async (req, res, next) => {
+    const interestList = await getManyResults(`
+      SELECT idx AS "interestIdx", interest AS "interestName"
+      FROM calenduck.interest
+      ORDER BY idx ASC
+    `);
+
+    if (interestList.length === 0) return res.sendStatus(204);
+
+    return res.status(200).send({
+        list: interestList
+    });
+}))
+
 // 관심사 계정 목록 불러오기 (manager)
 router.get("/managers", checkAuth("master"), endRequestHandler(async (req, res, next) => {
     const managerList = await getManyResults(`
