@@ -15,12 +15,14 @@ const {
   UnauthorizedException,
 } = require("../model/customException");
 
+const { ID_REGEX, PW_REGEX } = require("../constants");
+
 require('../passport/kakaoStrategy')();
 
 const { SIGNUP, FIND_ID, FIND_PW, LOGIN } = require("../constants");
 
 //로그인
-router.post("/login", checkValidity({ "authField": ["id", "pw"] }), endRequestHandler(async (req, res, next) => {
+router.post("/login", checkValidity({[ID_REGEX]: ["id"], [PW_REGEX]: ["pw"]}), endRequestHandler(async (req, res, next) => {
   const { id, pw } = req.body;
 
   const loginUser = await getOneResult(`
