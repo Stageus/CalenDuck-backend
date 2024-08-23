@@ -15,7 +15,7 @@ const {
   UnauthorizedException,
 } = require("../model/customException");
 
-const { ID_REGEX, PW_REGEX } = require("../constants");
+const { ID_REGEX, PW_REGEX, NICKNAME_REGEX } = require("../constants");
 
 require('../passport/kakaoStrategy')();
 
@@ -105,7 +105,7 @@ router.post("/pw/find", checkAuth(FIND_PW), endRequestHandler(async (req, res, n
 );
 
 //비밀번호 재설정
-router.put("/pw", checkAuth(FIND_PW), checkValidity({ "authField": ["pw"] }), endRequestHandler(async (req, res, next) => {
+router.put("/pw", checkAuth(FIND_PW), checkValidity({[PW_REGEX]: ["pw"]}), endRequestHandler(async (req, res, next) => {
   const { pw } = req.body;
   const { email } = req.decoded;
 
@@ -120,14 +120,14 @@ router.put("/pw", checkAuth(FIND_PW), checkValidity({ "authField": ["pw"] }), en
 );
 
 //아이디 중복 체크
-router.get("/check-id", checkValidity({ "authField": ["id"] }), checkDuplicatedId,
+router.get("/check-id", checkValidity({[ID_REGEX]: ["id"]}), checkDuplicatedId,
   async (req, res, next) => {
     return res.sendStatus(201);
   }
 );
 
 //회원가입
-router.post("/", checkAuth(SIGNUP), checkValidity({ "authField": ["id", "pw", "nickname"] }), checkDuplicatedId, endRequestHandler(async (req, res, next) => {
+router.post("/", checkAuth(SIGNUP), checkValidity({[ID_REGEX]: ["id"], [PW_REGEX]: ["pw"], [NICKNAME_REGEX]: ["nickname"]}), checkDuplicatedId, endRequestHandler(async (req, res, next) => {
   const { id, pw, nickname } = req.body;
   const email = req.decoded.email;
 
@@ -164,29 +164,50 @@ router.delete("/", checkAuth(LOGIN), endRequestHandler(async (req, res, next) =>
   const loginUser = req.decoded;
 
   const user = await getOneResult(`
-    SELECT login_idx, kakao_idx
+    SELECT login_idx, kakao_idx, role
     FROM calenduck.user
     WHERE idx = $1 
   `, [loginUser.idx]);
 
-  const loginIdx = user?.login_idx || null;
-  const kakaoIdx = user?.kakao_idx || null;
+  const psqlClient = await psql.connect();
+  
+  try {
+    const role = user.role;
+    const loginIdx = user?.login_idx || null;
+    const kakaoIdx = user?.kakao_idx || null;
 
-  if (loginIdx) {
-    await psql.query(`
-      DELETE FROM calenduck.login
-      WHERE idx = $1
-    `, [loginIdx]);
+    if(role === "manager") {
+      await psqlClient.query(`
+        UPDATE calenduck.interest
+        SET is_assigned = false
+        FROM calenduck.manager CM
+        WHERE CM.interest_idx = calenduck.interest.idx
+        AND CM.user_idx = $1
+      `, [loginUser.idx]);
+    }
+
+    if (loginIdx) {
+      await psqlClient.query(`
+        DELETE FROM calenduck.login
+        WHERE idx = $1
+      `, [loginIdx]);
+    }
+
+    if (kakaoIdx) {
+      await psqlClient.query(`
+        DELETE FROM calenduck.kakao 
+        WHERE idx = $1
+      `, [kakaoIdx]);
+    }
+
+    return res.sendStatus(201);
+
+  } catch (err) {
+    await psqlClient.query("ROLLBACK");
+    throw err;
+  } finally {
+    psqlClient.release();
   }
-
-  if (kakaoIdx) {
-    await psql.query(`
-      DELETE FROM calenduck.kakao 
-      WHERE idx = $1
-    `, [kakaoIdx]);
-  }
-
-  return res.sendStatus(201);
 })
 );
 
