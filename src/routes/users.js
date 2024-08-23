@@ -164,29 +164,50 @@ router.delete("/", checkAuth(LOGIN), endRequestHandler(async (req, res, next) =>
   const loginUser = req.decoded;
 
   const user = await getOneResult(`
-    SELECT login_idx, kakao_idx
+    SELECT login_idx, kakao_idx, role
     FROM calenduck.user
     WHERE idx = $1 
   `, [loginUser.idx]);
 
-  const loginIdx = user?.login_idx || null;
-  const kakaoIdx = user?.kakao_idx || null;
+  const psqlClient = await psql.connect();
+  
+  try {
+    const role = user.role;
+    const loginIdx = user?.login_idx || null;
+    const kakaoIdx = user?.kakao_idx || null;
 
-  if (loginIdx) {
-    await psql.query(`
-      DELETE FROM calenduck.login
-      WHERE idx = $1
-    `, [loginIdx]);
+    if(role === "manager") {
+      await psqlClient.query(`
+        UPDATE calenduck.interest
+        SET is_assigned = false
+        FROM calenduck.manager CM
+        WHERE CM.interest_idx = calenduck.interest.idx
+        AND CM.user_idx = $1
+      `, [loginUser.idx]);
+    }
+
+    if (loginIdx) {
+      await psqlClient.query(`
+        DELETE FROM calenduck.login
+        WHERE idx = $1
+      `, [loginIdx]);
+    }
+
+    if (kakaoIdx) {
+      await psqlClient.query(`
+        DELETE FROM calenduck.kakao 
+        WHERE idx = $1
+      `, [kakaoIdx]);
+    }
+
+    return res.sendStatus(201);
+
+  } catch (err) {
+    await psqlClient.query("ROLLBACK");
+    throw err;
+  } finally {
+    psqlClient.release();
   }
-
-  if (kakaoIdx) {
-    await psql.query(`
-      DELETE FROM calenduck.kakao 
-      WHERE idx = $1
-    `, [kakaoIdx]);
-  }
-
-  return res.sendStatus(201);
 })
 );
 
