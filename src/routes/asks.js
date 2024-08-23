@@ -15,6 +15,12 @@ const {
 } = require("../modules/sqlHandler");
 const endRequestHandler = require("../modules/endRequestHandler");
 
+const {
+    MAX_LENGTH_50_REGEX,
+    MAX_LENGTH_300_REGEX,
+    PARAM_REGEX
+} = require("../constants");
+
 // 관심사 목록 불러오기
 router.get("/category", checkAuth("login"), endRequestHandler(async (req, res, next) => {
     const askCategoryList = await getManyResults(`
@@ -32,7 +38,7 @@ router.get("/category", checkAuth("login"), endRequestHandler(async (req, res, n
 }))
 
 // 문의 추가
-router.post("/", checkAuth("login"), checkValidity({ "stringField": ["askTitle", "askContents"], "numberField": ["categoryIdx"] }), endRequestHandler(async (req, res, next) => {
+router.post("/", checkAuth("login"), checkValidity({ [MAX_LENGTH_50_REGEX]: ["askTitle"], [MAX_LENGTH_300_REGEX]: ["askContents"], [PARAM_REGEX]: ["categoryIdx"] }), endRequestHandler(async (req, res, next) => {
     const { categoryIdx, askTitle, askContents } = req.body;
 
     const askCategory = await getOneResult(`
