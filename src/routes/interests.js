@@ -19,11 +19,12 @@ const {
 } = require("../constants");
 
 // 관리자 할당된 관심사 목록 불러오기
-router.get("/all", checkAuth("master"), endRequestHandler(async (req, res, next) => {
+router.get("/all", endRequestHandler(async (req, res, next) => {
   const interestList = await getManyResults(`
     SELECT idx AS "interestIdx", interest AS "interestName"
     FROM calenduck.interest
     WHERE is_assigned=true
+    OR expiration_date IS NOT NULL
     ORDER BY interest ASC
   `)
 
