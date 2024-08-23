@@ -14,6 +14,12 @@ const {
 const makeNotification = require("../modules/makeNotification");
 const endRequestHandler = require("../modules/endRequestHandler");
 
+const {
+    PARAM_REGEX,
+    MAX_LENGTH_100_REGEX,
+    MAX_LENGTH_300_REGEX
+} = require("../constants");
+
 // 일반 계정 목록 불러오기 (general)
 router.get("/users", checkAuth("master"), endRequestHandler(async (req, res, next) => {
     const userList = await getManyResults(`
@@ -80,7 +86,7 @@ router.get("/managers", checkAuth("master"), endRequestHandler(async (req, res, 
     });
 }))
 
-router.get("/asks", checkAuth("master"), checkValidity({ "numberField": ["categoryIdx"] }), endRequestHandler(async (req, res, next) => {
+router.get("/asks", checkAuth("master"), checkValidity({ [PARAM_REGEX]: ["categoryIdx"] }), endRequestHandler(async (req, res, next) => {
     const { categoryIdx } = req.query;
 
     const askList = await getManyResults(`
@@ -100,7 +106,7 @@ router.get("/asks", checkAuth("master"), checkValidity({ "numberField": ["catego
 }))
 
 // 관심사 추가
-router.post("/interests", checkAuth("master"), checkValidity({ "stringField": ["interestName"] }), endRequestHandler(async (req, res, next) => {
+router.post("/interests", checkAuth("master"), checkValidity({ [MAX_LENGTH_100_REGEX]: ["interestName"] }), endRequestHandler(async (req, res, next) => {
     const { interestName } = req.body;
 
     await psql.query(`
@@ -112,7 +118,7 @@ router.post("/interests", checkAuth("master"), checkValidity({ "stringField": ["
 }))
 
 // 관심사 계정 권한 부여
-router.post("/users/permission", checkAuth("master"), checkValidity({ "numberField": ["userIdx", "interestIdx"] }), endRequestHandler(async (req, res, next) => {
+router.post("/users/permission", checkAuth("master"), checkValidity({ [PARAM_REGEX]: ["userIdx", "interestIdx"] }), endRequestHandler(async (req, res, next) => {
     const { userIdx, interestIdx } = req.body;
 
     const userAndInterest = await getOneResult(`
@@ -150,7 +156,7 @@ router.post("/users/permission", checkAuth("master"), checkValidity({ "numberFie
 }))
 
 // 문의 답변 작성
-router.post("/users/asks/:idx/reply", checkAuth("master"), checkValidity({ "stringField": ["askReply"], "numberField": ["idx"] }), endRequestHandler(async (req, res, next) => {
+router.post("/asks/:idx/reply", checkAuth("master"), checkValidity({ [MAX_LENGTH_300_REGEX]: ["askReply"], [PARAM_REGEX]: ["idx"] }), endRequestHandler(async (req, res, next) => {
     const { askReply } = req.body;
     const askIdx = req.params.idx;
 
@@ -173,7 +179,7 @@ router.post("/users/asks/:idx/reply", checkAuth("master"), checkValidity({ "stri
 }))
 
 // 관심사 수정
-router.put("/interest/:idx", checkAuth("master"), checkValidity({ "stringField": ["interestName"], "numberField": ["idx"] }), endRequestHandler(async (req, res, next) => {
+router.put("/interest/:idx", checkAuth("master"), checkValidity({ [MAX_LENGTH_100_REGEX]: ["interestName"], [PARAM_REGEX]: ["idx"] }), endRequestHandler(async (req, res, next) => {
     const { interestName } = req.body;
     const interestIdx = req.params.idx;
 
@@ -194,7 +200,7 @@ router.put("/interest/:idx", checkAuth("master"), checkValidity({ "stringField":
 }))
 
 // 관심사 연결 수정
-router.put("/managers/assignment", checkAuth("master"), checkValidity({ "numberField": ["beforeManagerIdx", "afterManagerIdx", "interestIdx"] }), endRequestHandler(async (req, res, next) => {
+router.put("/managers/assignment", checkAuth("master"), checkValidity({ [PARAM_REGEX]: ["beforeManagerIdx", "afterManagerIdx", "interestIdx"] }), endRequestHandler(async (req, res, next) => {
     const { beforeManagerIdx, afterManagerIdx, interestIdx } = req.body;
 
     const managerAndInterest = await getOneResult(`
@@ -236,7 +242,7 @@ router.put("/managers/assignment", checkAuth("master"), checkValidity({ "numberF
 }))
 
 // 관심사 삭제
-router.delete("/interest/:idx", checkAuth("master"), checkValidity({ "numberField": ["idx"] }), endRequestHandler(async (req, res, next) => {
+router.delete("/interest/:idx", checkAuth("master"), checkValidity({ [PARAM_REGEX]: ["idx"] }), endRequestHandler(async (req, res, next) => {
     const interestIdx = req.params.idx;
 
     const manager = await getOneResult(`
@@ -266,7 +272,7 @@ router.delete("/interest/:idx", checkAuth("master"), checkValidity({ "numberFiel
 }))
 
 // 관심사 계정 권한 삭제
-router.delete("/managers/:idx/permission", checkAuth("master"), checkValidity({ "numberField": ["idx"] }), endRequestHandler(async (req, res, next) => {
+router.delete("/managers/:idx/permission", checkAuth("master"), checkValidity({ [PARAM_REGEX]: ["idx"] }), endRequestHandler(async (req, res, next) => {
     const managerIdx = req.params.idx;
 
     const manager = await getOneResult(`
