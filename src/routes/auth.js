@@ -16,8 +16,10 @@ const endRequestHandler = require("../modules/endRequestHandler");
 const { getOneResult } = require("../modules/sqlHandler");
 const makeToken = require("../modules/makeToken");
 
+const { EMAIL_REGEX, CODE_REGEX } = require("../constants");
+
 //이메일 인증 번호 발송
-router.post("/email", checkValidity({"authField": ["email"]}), endRequestHandler(async (req, res, next) => {
+router.post("/email", checkValidity({[EMAIL_REGEX]: ["email"]}), endRequestHandler(async (req, res, next) => {
     const { email, checkDuplicated } = req.body;
     
     if(typeof checkDuplicated !== "boolean") return next(new BadRequestException());
@@ -69,7 +71,7 @@ router.post("/email", checkValidity({"authField": ["email"]}), endRequestHandler
 );
 
 //이메일 인증 번호 확인
-router.post("/check-code", checkValidity({"authField": ["email"], "codeField": ["code"]}), endRequestHandler(async (req, res, next) => {
+router.post("/check-code", checkValidity({[EMAIL_REGEX]: ["email"], [CODE_REGEX]: ["code"]}), endRequestHandler(async (req, res, next) => {
   const { email, code, pageType, id } = req.body;
 
   const validTypes = [SIGNUP, FIND_ID, FIND_PW];
