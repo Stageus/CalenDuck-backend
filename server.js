@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const session = require('express-session');
 require("dotenv").config();
 
 const mongoose = require("./database/connect/mongodb");
@@ -19,10 +20,28 @@ const interestsApi = require("./src/routes/interests");
 
 const app = express();
 const port = process.env.HTTP_PORT;
+const sslPort = process.env.HTTPS_PORT;
+const fs = require("fs") //외부 파일을 가져옴
+const https = require("https")
+
+
+const options = {
+  "key": fs.readFileSync(`${__dirname}/ssl/key.pem`),
+  "cert": fs.readFileSync(`${__dirname}/ssl/cert.pem`),
+  "passphrase": "1234"
+}
+
 
 app.use(express.json());
+app.use(session({
+  secret: 'SECRET_CODE',
+  resave: false,
+  saveUninitialized: false,
+  checkPeriod: 30 * 60 * 1000
+}));
 app.use(cors({
-  origin: ["http://calenduck.site", "https://calenduck.site", "https://d2b6dw8a7unc3s.cloudfront.net/", "http://d2b6dw8a7unc3s.cloudfront.net/"]
+  origin: ["http://calenduck.site", "https://calenduck.site", "https://d2b6dw8a7unc3s.cloudfront.net/", "http://d2b6dw8a7unc3s.cloudfront.net/", "http://localhost:3000"],
+  credentials: true
 }))
 mongoose();
 app.use(cookieParser());
@@ -39,6 +58,13 @@ app.use("/interests", interestsApi);
 
 app.use(notFoundApi);
 app.use(errorHandler);
+
+
+//https 실행 파일
+
+https.createServer(options, app).listen(sslPort, () =>{
+  console.log(`${sslPort}번에서 HTTPS Web Server 실행`)
+})
 
 app.listen(port, () => {
   console.log(`${port}번에서 HTTP Web Server 실행`);

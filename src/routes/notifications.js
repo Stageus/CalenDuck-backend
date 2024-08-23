@@ -7,12 +7,12 @@ const checkValidity = require("../middlewares/checkValidity");
 
 const endRequestHandler = require("../modules/endRequestHandler");
 
-const { LOGIN } = require("../constants");
+const { LOGIN, PARAM_REGEX } = require("../constants");
 
 //알림 목록 불러오기
-router.get("/", checkAuth(LOGIN), checkValidity({"numberField": ["page"]}), endRequestHandler(async (req, res, next) => {
+router.get("/", checkAuth(LOGIN), checkValidity({[PARAM_REGEX]: ["page"]}), endRequestHandler(async (req, res, next) => {
     const loginUser = req.decoded;
-    const { page } = req.body;
+    const page = req.query.page;
     const pageSize = 20;
     const skipAmount = (page - 1) * pageSize;
 

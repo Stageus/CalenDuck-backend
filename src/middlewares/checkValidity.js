@@ -47,63 +47,26 @@ const checkValidity = (data) => {
                         req.query[item] ? (source = "query", req.query[item]) :
                             null;
 
+                const stringFieldArray = [MAX_LENGTH_50_REGEX.source, MAX_LENGTH_100_REGEX.source, MAX_LENGTH_300_REGEX.source];
+
+                const regexParts = typeKey.match(/\/(.*?)\/([gimy]*)$/);
+                const regex = new RegExp(regexParts[1], regexParts[2]);
+
                 // 값이 없으면, 에러처리
                 if (!value) {
                     return next(new BadRequestException());
                 }
 
-                if (typeKey === "stringField") { // 개행처리 및 글자수 정규식 처리
-                    const stringRegexObj = {
-                        "personalContents": MAX_LENGTH_100_REGEX,
-                        "interestContents": MAX_LENGTH_100_REGEX,
-                        "askTitle": MAX_LENGTH_50_REGEX,
-                        "askContents": MAX_LENGTH_300_REGEX,
-                        "askReply": MAX_LENGTH_300_REGEX,
-                        "interestName": MAX_LENGTH_100_REGEX
-                    }
+                if (!regex.test(value)) {
+                    return next(new BadRequestException());
+                }
 
-                    if (item in stringRegexObj && !stringRegexObj[item].test(value)) {
-                        return next(new BadRequestException());
-                    }
-
+                if (regex.source === PARAM_REGEX.source) {
+                    req[source][item] = parseInt(req[source][item]);
+                } else if (stringFieldArray.includes(regex.source)) {
                     req[source][item] = value.replace(WHITESPACE_REGEX, ' ');
                 }
-                if (typeKey === "numberField") { // 숫자 정규식 처리 및 parseInt 처리 후 넘김
-                    if (!PARAM_REGEX.test(value)) {
-                        return next(new BadRequestException());
-                    }
 
-                    req[source][item] = parseInt(req[source][item]);
-                }
-                if (typeKey === "dateField") { // 날짜 정규식 처리 및 parseInt 처리 후 넘김
-                    const dateRegexObj = {
-                        "fullDate": DATE_TIME_REGEX,
-                        "yearMonth": YEAR_MONTH_REGEX,
-                        "startDate": DATE_REGEX,
-                        "endDate": DATE_REGEX
-                    }
-
-                    if (item in dateRegexObj && !dateRegexObj[item].test(value)) {
-                        return next(new BadRequestException());
-                    }
-                }
-                if (typeKey === "authField") { // 인증 관련 정규식 처리
-                    const authRegexObj = {
-                        "id": ID_REGEX,
-                        "pw": PW_REGEX,
-                        "email": EMAIL_REGEX,
-                        "nickname": NICKNAME_REGEX
-                    }
-
-                    if (item in authRegexObj && !authRegexObj[item].test(value)) {
-                        return next(new BadRequestException());
-                    }
-                }
-                if (typeKey === "codeField") { // 인증코드 정규식 처리
-                    if (!CODE_REGEX.test(value)) {
-                        return next(new BadRequestException());
-                    }
-                }
             }
         }
         return next();
