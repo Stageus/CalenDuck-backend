@@ -13,7 +13,10 @@ const {
 } = require("../modules/sqlHandler");
 const endRequestHandler = require("../modules/endRequestHandler");
 
-const { LOGIN } = require("../constants");
+const {
+  PARAM_REGEX,
+  LOGIN
+} = require("../constants");
 
 // 관리자 할당된 관심사 목록 불러오기
 router.get("/all", checkAuth("master"), endRequestHandler(async (req, res, next) => {
@@ -52,7 +55,7 @@ router.get("/", checkAuth(LOGIN), endRequestHandler(async (req, res, next) => {
 );
 
 //관심사 추가
-router.post("/:idx", checkAuth(LOGIN), checkValidity({ "numberField": ["idx"] }), endRequestHandler(async (req, res, next) => {
+router.post("/:idx", checkAuth(LOGIN), checkValidity({ [PARAM_REGEX]: ["idx"] }), endRequestHandler(async (req, res, next) => {
   const { idx: interestIdx } = req.params;
   const loginUser = req.decoded;
 
@@ -66,7 +69,7 @@ router.post("/:idx", checkAuth(LOGIN), checkValidity({ "numberField": ["idx"] })
 );
 
 //내 관심사 삭제
-router.delete("/:idx", checkAuth(LOGIN), checkValidity({ "numberField": ["idx"] }), endRequestHandler(async (req, res, next) => {
+router.delete("/:idx", checkAuth(LOGIN), checkValidity({ [PARAM_REGEX]: ["idx"] }), endRequestHandler(async (req, res, next) => {
   const { idx: interestIdx } = req.params;
   const loginUser = req.decoded;
 
