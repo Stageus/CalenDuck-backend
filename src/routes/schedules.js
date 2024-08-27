@@ -16,10 +16,10 @@ const {
 } = require("../modules/sqlHandler");
 const endRequestHandler = require("../modules/endRequestHandler");
 
-const { LOGIN } = require("../constants");
+const { YEAR_MONTH_REGEX } = require("../constants");
 
 // 특정 년월 스케줄 전체 불러오기
-router.get("/", checkAuth(LOGIN), checkValidity({ "dateField": ["yearMonth"] }), endRequestHandler(async (req, res, next) => {
+router.get("/", checkAuth(LOGIN), checkValidity({ [YEAR_MONTH_REGEX]: ["yearMonth"], }), endRequestHandler(async (req, res, next) => {
     const { yearMonth } = req.query;
 
     const year = yearMonth.substring(0, 4);
