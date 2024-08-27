@@ -397,7 +397,7 @@ router.put("/:idx", checkAuth(LOGIN), checkValidity({ [DATE_REGEX]: ["fullDate"]
 }))
 
 // 스케줄 삭제
-router.delete("/:idx", checkAuth(LOGIN), checkValidity({"numberField": ["idx"] }), endRequestHandler(async (req, res, next) => {
+router.delete("/:idx", checkAuth(LOGIN), checkValidity({ [PARAM_REGEX]: ["idx"] }), endRequestHandler(async (req, res, next) => {
     const { idx } = req.params;
     const loginUser = req.decoded;
 
