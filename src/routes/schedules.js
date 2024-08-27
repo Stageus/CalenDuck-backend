@@ -311,7 +311,7 @@ router.delete(":idx/notify", checkAuth(LOGIN), checkValidity({ [PARAM_REGEX]: ["
 }))
 
 // 관심사 스케줄 중요 알림 설정 추가하기
-router.post("/interest/:idx/notify", checkAuth(LOGIN), checkValidity({"numberField": ["idx"] }), endRequestHandler(async (req, res, next) => {
+router.post("/interest/:idx/notify", checkAuth(LOGIN), checkValidity({ [PARAM_REGEX]: ["idx"] }), endRequestHandler(async (req, res, next) => {
     const { idx } = req.params;
 
     // 해당 관심사 스케줄의 현재 priority 값 조회
