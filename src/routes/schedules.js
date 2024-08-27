@@ -372,7 +372,7 @@ router.post("/", checkAuth(LOGIN), checkValidity({ [DATE_REGEX]: ["fullDate"], [
 }))
 
 // 스케줄 수정
-router.put("/:idx", checkAuth(LOGIN), checkValidity({ "dateField": ["fullDate"], "stringField": ["personalContents"], "numberField": ["idx"] }), endRequestHandler(async (req, res, next) => {
+router.put("/:idx", checkAuth(LOGIN), checkValidity({ [DATE_REGEX]: ["fullDate"], [MAX_LENGTH_300_REGEX]: ["personalContents"], [PARAM_REGEX]: ["idx"] }), endRequestHandler(async (req, res, next) => {
     const { fullDate, personalContents } = req.body;
     const { idx } = req.params;
     const loginUser = req.decoded;
