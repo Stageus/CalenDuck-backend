@@ -359,7 +359,7 @@ router.delete("/interest/:idx/notify", checkAuth(LOGIN), checkValidity({ [PARAM_
 }))
 
 // 스케줄 생성
-router.post("/", checkAuth(LOGIN), checkValidity({ "dateField": ["fullDate"], "stringField": ["personalContents"] }), endRequestHandler(async (req, res, next) => {
+router.post("/", checkAuth(LOGIN), checkValidity({ [DATE_REGEX]: ["fullDate"], [MAX_LENGTH_300_REGEX]: ["personalContents"] }), endRequestHandler(async (req, res, next) => {
     const { fullDate, personalContents } = req.body;
     const loginUser = req.decoded;
 
