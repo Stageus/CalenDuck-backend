@@ -149,7 +149,7 @@ router.get("/details/interest", checkAuth(LOGIN), checkValidity({ [DATE_REGEX]: 
 }))
 
 // 특정 날짜 스케줄 전체 불러오기
-router.get("/details", checkAuth(LOGIN), checkValidity({ "dateField": ["fullDate"]}), endRequestHandler(async (req, res, next) => {
+router.get("/details", checkAuth(LOGIN), checkValidity({ [DATE_REGEX]: ["fullDate"] }), endRequestHandler(async (req, res, next) => {
     const { fullDate } = req.query;
 
     const year = fullDate.substring(0, 4);
