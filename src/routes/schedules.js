@@ -16,7 +16,7 @@ const {
 } = require("../modules/sqlHandler");
 const endRequestHandler = require("../modules/endRequestHandler");
 
-const { DATE_REGEX, YEAR_MONTH_REGEX, PARAM_REGEX } = require("../constants");
+const { DATE_REGEX, YEAR_MONTH_REGEX, MAX_LENGTH_50_REGEX, PARAM_REGEX } = require("../constants");
 
 // 특정 년월 스케줄 전체 불러오기
 router.get("/", checkAuth(LOGIN), checkValidity({ [YEAR_MONTH_REGEX]: ["yearMonth"], }), endRequestHandler(async (req, res, next) => {
@@ -207,7 +207,7 @@ router.get("/details", checkAuth(LOGIN), checkValidity({ [DATE_REGEX]: ["fullDat
 }))
 
 // 스케줄 검색
-router.get("/searches", checkAuth(LOGIN), checkValidity({ "stringField": ["interestContents"] }),endRequestHandler(async (req, res, next) => {
+router.get("/searches", checkAuth(LOGIN), checkValidity({ [DATE_REGEX]: ["startDate"],[DATE_REGEX]: ["endDate"],[MAX_LENGTH_50_REGEX]: ["content"] }),endRequestHandler(async (req, res, next) => {
     const { startDate, endDate, content } = req.query;
 
     // 빈 리스트 초기화
