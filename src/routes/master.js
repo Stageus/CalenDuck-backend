@@ -53,7 +53,7 @@ router.get("/interests", checkAuth("master"), endRequestHandler(async (req, res,
 }))
 
 // 모든 관심사 목록 불러오기
-router.get("/interest/all", checkAuth("login"), endRequestHandler(async (req, res, next) => {
+router.get("/interest/all", checkAuth("master"), endRequestHandler(async (req, res, next) => {
     const interestList = await getManyResults(`
       SELECT idx AS "interestIdx", interest AS "interestName"
       FROM calenduck.interest
