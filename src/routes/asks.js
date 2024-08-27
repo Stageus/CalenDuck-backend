@@ -51,7 +51,7 @@ router.post("/", checkAuth(LOGIN), checkValidity({ [MAX_LENGTH_50_REGEX]: ["askT
     if (!askCategory) return next(new NotFoundException());
 
     await psql.query(`
-        INSERT INTO calenduck.ask(user_idx, ask_category_idx, title, contents)
+        INSERT INTO calenduck.ask(user_idx, ask_category_idx, askTitle, askContents)
         VALUES($1, $2, $3, $4)
     `, [req.decoded.idx, categoryIdx, askTitle, askContents]);
 
