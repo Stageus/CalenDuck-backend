@@ -18,6 +18,7 @@ const {
     PARAM_REGEX,
     MAX_LENGTH_100_REGEX,
     MAX_LENGTH_300_REGEX,
+    REPLY_NOTI,
     MASTER
 } = require("../constants");
 
@@ -162,7 +163,7 @@ router.post("/asks/:idx/reply", checkAuth(MASTER), checkValidity({ [MAX_LENGTH_3
     const askIdx = req.params.idx;
 
     const ask = await getOneResult(`
-        SELECT title FROM calenduck.ask
+        SELECT user_idx, title FROM calenduck.ask
         WHERE idx = $1
     `, [askIdx]); // 문의가 존재하는지 확인
 
@@ -174,7 +175,7 @@ router.post("/asks/:idx/reply", checkAuth(MASTER), checkValidity({ [MAX_LENGTH_3
         WHERE idx = $2
     `, [askReply, askIdx]);
 
-    makeNotification(req.decoded.idx, "reply", { "title": ask.title, "reply": askReply });
+    makeNotification(ask.user_idx, REPLY_NOTI, { "title": ask.title, "reply": askReply });
 
     return res.sendStatus(201);
 }))
