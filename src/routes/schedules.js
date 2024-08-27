@@ -16,7 +16,7 @@ const {
 } = require("../modules/sqlHandler");
 const endRequestHandler = require("../modules/endRequestHandler");
 
-const { YEAR_MONTH_REGEX } = require("../constants");
+const { YEAR_MONTH_REGEX, PARAM_REGEX} = require("../constants");
 
 // 특정 년월 스케줄 전체 불러오기
 router.get("/", checkAuth(LOGIN), checkValidity({ [YEAR_MONTH_REGEX]: ["yearMonth"], }), endRequestHandler(async (req, res, next) => {
@@ -73,7 +73,7 @@ router.get("/", checkAuth(LOGIN), checkValidity({ [YEAR_MONTH_REGEX]: ["yearMont
 }))
 
 // 특정 년월 특정 관심사 불러오기
-router.get("/interest", checkAuth(LOGIN), checkValidity({ "dateField": ["yearMonth"], "numberField": ["interestIdx"] }), endRequestHandler(async (req, res, next) => {
+router.get("/interest", checkAuth(LOGIN), checkValidity({ [YEAR_MONTH_REGEX]: ["yearMonth"], [PARAM_REGEX]: ["interestIdx"] }), endRequestHandler(async (req, res, next) => {
     const { yearMonth, interestIdx } = req.query;
 
     const year = yearMonth.substring(0, 4);
