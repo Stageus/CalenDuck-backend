@@ -84,7 +84,7 @@ router.get("/interest", checkAuth(LOGIN), checkValidity({ [YEAR_MONTH_REGEX]: ["
 
     // 관심사 스케줄 가져오기
     const interestScheduleList = await getManyResults(`
-        SELECT COUNT(*) AS count, EXTRACT(DAY FROM time) as day, contents as interestName
+        SELECT idx, COUNT(*) AS count, EXTRACT(DAY FROM time) as day, contents as interestName
         FROM calenduck.interest_schedule
         WHERE EXTRACT(YEAR FROM time) = $1 AND EXTRACT(MONTH FROM time) = $2 AND interest_idx = $3
         GROUP BY EXTRACT(DAY FROM time), contents
@@ -96,6 +96,7 @@ router.get("/interest", checkAuth(LOGIN), checkValidity({ [YEAR_MONTH_REGEX]: ["
     interestScheduleList.forEach(schedule => {
         const day = schedule.day - 1; // index값이 day 값은 같게 하기 위해서 1을 뺌
         scheduleList[day].push({
+            idx: idx,
             interestName: schedule.interestname,
             count: schedule.count
         });
