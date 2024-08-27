@@ -17,6 +17,7 @@ const notificationsApi = require("./src/routes/notifications");
 const schedulesApi = require("./src/routes/schedules");
 const usersApi = require("./src/routes/users");
 const interestsApi = require("./src/routes/interests");
+const asksApi = require("./src/routes/asks")
 
 const app = express();
 const port = process.env.HTTP_PORT;
@@ -55,6 +56,7 @@ app.use("/notifications", notificationsApi);
 app.use("/schedules", schedulesApi);
 app.use("/users", usersApi);
 app.use("/interests", interestsApi);
+app.use("/asks", asksApi);
 
 app.use(notFoundApi);
 app.use(errorHandler);
