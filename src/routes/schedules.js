@@ -109,7 +109,7 @@ router.get("/interest", checkAuth(LOGIN), checkValidity({ [YEAR_MONTH_REGEX]: ["
 
 // 특정 날짜에서 특정 관심사 불러오기
 router.get("/details/interest", checkAuth(LOGIN), checkValidity({ [DATE_REGEX]: ["fullDate"], [PARAM_REGEX]: ["interestIdx"] }), endRequestHandler(async (req, res, next) => {
-    const { fullDate, interestIdx, priority} = req.query;
+    const { fullDate, interestIdx } = req.query;
 
     const year = fullDate.substring(0, 4); 
     const month = fullDate.substring(4, 6);
