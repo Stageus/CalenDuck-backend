@@ -30,7 +30,7 @@ router.get("/", checkAuth(LOGIN), checkValidity({ [YEAR_MONTH_REGEX]: ["yearMont
 
     // 개인 스케줄 가져오기
     const personalScheduleList = await getManyResults(`
-        SELECT COUNT(*) AS count, EXTRACT(DAY FROM time) as day
+        SELECT idx, COUNT(*) AS count, EXTRACT(DAY FROM time) as day
         FROM calenduck.personal_schedule
         WHERE EXTRACT(YEAR FROM time) = $1 AND EXTRACT(MONTH FROM time) = $2
         GROUP BY EXTRACT(DAY FROM time)
@@ -38,7 +38,7 @@ router.get("/", checkAuth(LOGIN), checkValidity({ [YEAR_MONTH_REGEX]: ["yearMont
 
     // 관심사 스케줄 가져오기
     const interestScheduleList = await getManyResults(`
-        SELECT COUNT(*) AS count, EXTRACT(DAY FROM time) as day, contents as name
+        SELECT idx, COUNT(*) AS count, EXTRACT(DAY FROM time) as day, contents as name
         FROM calenduck.interest_schedule
         WHERE EXTRACT(YEAR FROM time) = $1 AND EXTRACT(MONTH FROM time) = $2
         GROUP BY EXTRACT(DAY FROM time), contents
@@ -50,6 +50,7 @@ router.get("/", checkAuth(LOGIN), checkValidity({ [YEAR_MONTH_REGEX]: ["yearMont
     personalScheduleList.forEach(schedule => {
         const day = schedule.day - 1; // index값이 day 값은 같게 하기 위해서 1을 뺌
         scheduleList[day].push({
+            idx: idx,
             type: 'personal',
             count: schedule.count
         });
@@ -59,6 +60,7 @@ router.get("/", checkAuth(LOGIN), checkValidity({ [YEAR_MONTH_REGEX]: ["yearMont
     interestScheduleList.forEach(schedule => {
         const day = schedule.day - 1; // index값이 day 값은 같게 하기 위해서 1을 뺌
         scheduleList[day].push({
+            idx: idx,
             type: 'interest',
             name: schedule.name,
             count: schedule.count
