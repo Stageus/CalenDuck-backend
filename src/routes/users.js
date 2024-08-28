@@ -50,7 +50,9 @@ router.post("/login", checkValidity({[ID_REGEX]: ["id"], [PW_REGEX]: ["pw"]}), e
       secure: true
     });
 
-  return res.sendStatus(201);
+  return res.status.send({
+    token: accessToken
+  });
 })
 );
 
