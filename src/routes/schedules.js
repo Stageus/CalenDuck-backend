@@ -19,6 +19,7 @@ const endRequestHandler = require("../modules/endRequestHandler");
 const { DATE_REGEX, 
         YEAR_MONTH_REGEX, 
         MAX_LENGTH_50_REGEX, 
+        MAX_LENGTH_300_REGEX,
         PARAM_REGEX,
         LOGIN } = require("../constants");
 
