@@ -15,7 +15,7 @@ const loggingSchema = new mongoose.Schema({
     required: true,
   },
   response: {
-    type: Number,
+    type: Schema.Types.Mixed,
     required: true,
   },
 });
