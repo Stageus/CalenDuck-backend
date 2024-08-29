@@ -1,10 +1,10 @@
 const express = require("express");
 const cors = require("cors");
-// const session = require('express-session');
+const session = require('express-session');
 require("dotenv").config();
 
 const mongoose = require("./database/connect/mongodb");
-// const cookieParser = require("cookie-parser");
+const cookieParser = require("cookie-parser");
 const errorHandler = require("./src/middlewares/errorHandler");
 const interceptor = require("./src/middlewares/interceptor");
 const notFoundApi = require("./src/middlewares/notFoundApi");
@@ -34,17 +34,17 @@ const port = process.env.HTTP_PORT;
 
 
 app.use(express.json());
-// app.use(session({
-//   secret: 'SECRET_CODE',
-//   resave: false,
-//   saveUninitialized: false,
-//   checkPeriod: 30 * 60 * 1000
-// }));
+app.use(session({
+  secret: 'SECRET_CODE',
+  resave: false,
+  saveUninitialized: false,
+  checkPeriod: 30 * 60 * 1000
+}));
 app.use(cors({
   origin: "*"
 }))
 mongoose();
-// app.use(cookieParser());
+app.use(cookieParser());
 app.use(limiter);
 app.use(interceptor);
 
