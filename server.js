@@ -21,16 +21,16 @@ const asksApi = require("./src/routes/asks")
 
 const app = express();
 const port = process.env.HTTP_PORT;
-const sslPort = process.env.HTTPS_PORT;
-const fs = require("fs") //외부 파일을 가져옴
-const https = require("https")
+// const sslPort = process.env.HTTPS_PORT;
+// const fs = require("fs") //외부 파일을 가져옴
+// const https = require("https")
 
 
-const options = {
-  "key": fs.readFileSync(`${__dirname}/ssl/key.pem`),
-  "cert": fs.readFileSync(`${__dirname}/ssl/cert.pem`),
-  "passphrase": "1234"
-}
+// const options = {
+//   "key": fs.readFileSync(`${__dirname}/ssl/key.pem`),
+//   "cert": fs.readFileSync(`${__dirname}/ssl/cert.pem`),
+//   "passphrase": "1234"
+// }
 
 
 app.use(express.json());
@@ -62,10 +62,9 @@ app.use(errorHandler);
 
 
 //https 실행 파일
-
-https.createServer(options, app).listen(sslPort, () =>{
-  console.log(`${sslPort}번에서 HTTPS Web Server 실행`)
-})
+// https.createServer(options, app).listen(sslPort, () =>{
+//   console.log(`${sslPort}번에서 HTTPS Web Server 실행`)
+// })
 
 app.listen(port, () => {
   console.log(`${port}번에서 HTTP Web Server 실행`);
