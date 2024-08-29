@@ -20,7 +20,8 @@ const {
 
 const checkAuth = (type = null) => {
     return (req, res, next) => {
-        const token = req.cookies.access_token;
+        const authHeader = req.headers['authorization'];
+        const token = authHeader && authHeader.split(' ')[1]; // "Bearer <토큰>"에서 "<토큰>" 부분만 추출
 
         try {
             const jwtData = jwt.verify(token, process.env.TOKEN_SECRET_KEY);
