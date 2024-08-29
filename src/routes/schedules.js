@@ -55,7 +55,7 @@ router.get("/", checkAuth(LOGIN), checkValidity({ [YEAR_MONTH_REGEX]: ["yearMont
     personalScheduleList.forEach(schedule => {
         const day = schedule.day - 1; // index값이 day 값은 같게 하기 위해서 1을 뺌
         scheduleList[day].push({
-            idx: idx,
+            idx: schedule.idx,  // schedule 객체에서 idx를 가져옴
             type: 'personal',
             count: schedule.count
         });
@@ -65,7 +65,7 @@ router.get("/", checkAuth(LOGIN), checkValidity({ [YEAR_MONTH_REGEX]: ["yearMont
     interestScheduleList.forEach(schedule => {
         const day = schedule.day - 1; // index값이 day 값은 같게 하기 위해서 1을 뺌
         scheduleList[day].push({
-            idx: idx,
+            idx: schedule.idx,  // schedule 객체에서 idx를 가져옴
             type: 'interest',
             name: schedule.name,
             count: schedule.count
