@@ -35,18 +35,18 @@ router.get("/", checkAuth(LOGIN), checkValidity({ [YEAR_MONTH_REGEX]: ["yearMont
 
     // 개인 스케줄 가져오기
     const personalScheduleList = await getManyResults(`
-        SELECT idx, COUNT(*) AS count, EXTRACT(DAY FROM time) as day
+        SELECT idx, EXTRACT(DAY FROM time) as day, COUNT(*) AS count
         FROM calenduck.personal_schedule
         WHERE EXTRACT(YEAR FROM time) = $1 AND EXTRACT(MONTH FROM time) = $2
-        GROUP BY EXTRACT(DAY FROM time)
+        GROUP BY idx, EXTRACT(DAY FROM time)
     `, [year, month]);
 
     // 관심사 스케줄 가져오기
     const interestScheduleList = await getManyResults(`
-        SELECT idx, COUNT(*) AS count, EXTRACT(DAY FROM time) as day, contents as name
+        SELECT idx, EXTRACT(DAY FROM time) as day, COUNT(*) AS count, contents as name
         FROM calenduck.interest_schedule
         WHERE EXTRACT(YEAR FROM time) = $1 AND EXTRACT(MONTH FROM time) = $2
-        GROUP BY EXTRACT(DAY FROM time), contents
+        GROUP BY idx, EXTRACT(DAY FROM time), contents
     `, [year, month]);
 
     if (personalScheduleList.length === 0 && interestScheduleList.length === 0) return res.sendStatus(204); 
