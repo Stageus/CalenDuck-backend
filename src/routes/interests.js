@@ -40,7 +40,7 @@ router.get("/", checkAuth(LOGIN), endRequestHandler(async (req, res, next) => {
   const loginUser = req.decoded;
 
   const interestList = await getManyResults(`
-    SELECT CI.interest AS "interestIdx", CI.idx AS "interestName" FROM calenduck.user_interest CUI
+    SELECT CI.idx AS "interestIdx", CI.interest AS "interestName" FROM calenduck.user_interest CUI
     JOIN calenduck.interest CI
     ON CUI.interest_idx = CI.idx
     WHERE CUI.user_idx = $1
