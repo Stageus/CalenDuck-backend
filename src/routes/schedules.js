@@ -56,6 +56,8 @@ router.get("/", checkAuth(LOGIN), checkValidity({ [YEAR_MONTH_REGEX]: ["yearMont
 
     // 개인 스케줄을 날짜별로 리스트에 추가하고 count를 누적
     personalScheduleList.forEach(schedule => {
+        console.log(schedule); // schedule 객체 전체를 확인
+
         const day = schedule.day - 1;
         console.log(typeof schedule.count, schedule.count); // 여기서 schedule.count의 타입과 값을 확인
         scheduleList[day].personal.count += Number(schedule.count); // 확실히 숫자로 변환하여 더해줌
@@ -68,6 +70,8 @@ router.get("/", checkAuth(LOGIN), checkValidity({ [YEAR_MONTH_REGEX]: ["yearMont
 
     // 관심사 스케줄을 날짜별로 그룹화하여 리스트에 추가
     interestScheduleList.forEach(schedule => {
+        console.log(schedule); // schedule 객체 전체를 확인
+        
         const day = schedule.day - 1;
         if (!scheduleList[day].interests[schedule.name]) {
             scheduleList[day].interests[schedule.name] = {
