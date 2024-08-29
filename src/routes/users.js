@@ -29,7 +29,7 @@ router.post("/login", checkValidity({[ID_REGEX]: ["id"], [PW_REGEX]: ["pw"]}), e
     SELECT CU.idx, CU.role, CM.interest_idx, CI.interest
     FROM calenduck.login CL
     JOIN calenduck.user CU
-    ON CL.idx = CU.login_idx
+    ON CL.idx = CU.login_idx 
     LEFT JOIN calenduck.manager CM ON CU.idx = CM.user_idx
     LEFT JOIN calenduck.interest CI ON CM.interest_idx = CI.idx
     WHERE CL.id = $1 AND CL.pw = $2
@@ -45,9 +45,14 @@ router.post("/login", checkValidity({[ID_REGEX]: ["id"], [PW_REGEX]: ["pw"]}), e
     interestName: loginUser.interest,
   });
 
-  return res.status.send({
+  res.cookie("access_token", accessToken, {
+      sameSite: "none",
+      secure: true
+    });
+
+  return res.status(200).send({
     token: accessToken
-  });
+  })
 })
 );
 
