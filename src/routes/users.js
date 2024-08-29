@@ -45,11 +45,6 @@ router.post("/login", checkValidity({[ID_REGEX]: ["id"], [PW_REGEX]: ["pw"]}), e
     interestName: loginUser.interest,
   });
 
-  res.cookie("access_token", accessToken, {
-      sameSite: "none",
-      secure: true
-    });
-
   return res.status(200).send({
     token: accessToken
   })
