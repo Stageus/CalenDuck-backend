@@ -56,22 +56,17 @@ router.get("/", checkAuth(LOGIN), checkValidity({ [YEAR_MONTH_REGEX]: ["yearMont
 
     // 개인 스케줄을 날짜별로 리스트에 추가하고 count를 누적
     personalScheduleList.forEach(schedule => {
-        console.log(schedule); // schedule 객체 전체를 확인
-
         const day = schedule.day - 1;
-        console.log(typeof schedule.count, schedule.count); // 여기서 schedule.count의 타입과 값을 확인
-        scheduleList[day].personal.count += Number(schedule.count); // 확실히 숫자로 변환하여 더해줌
+        scheduleList[day].personal.count += Number(schedule.count); // 숫자로 변환하여 더해줌
         scheduleList[day].personal.schedules.push({
             idx: schedule.idx,
             type: 'personal',
-            count: Number(schedule.count) // 확실히 숫자로 변환
+            count: Number(schedule.count) // 숫자로 변환
         });
     });
 
     // 관심사 스케줄을 날짜별로 그룹화하여 리스트에 추가
     interestScheduleList.forEach(schedule => {
-        console.log(schedule); // schedule 객체 전체를 확인
-        
         const day = schedule.day - 1;
         if (!scheduleList[day].interests[schedule.name]) {
             scheduleList[day].interests[schedule.name] = {
@@ -79,20 +74,39 @@ router.get("/", checkAuth(LOGIN), checkValidity({ [YEAR_MONTH_REGEX]: ["yearMont
                 schedules: []
             };
         }
-        console.log(typeof schedule.count, schedule.count); // 여기서 schedule.count의 타입과 값을 확인
-        scheduleList[day].interests[schedule.name].count += Number(schedule.count); // 확실히 숫자로 변환하여 더해줌
+        scheduleList[day].interests[schedule.name].count += Number(schedule.count); // 숫자로 변환하여 더해줌
         scheduleList[day].interests[schedule.name].schedules.push({
             idx: schedule.idx,
             type: 'interest',
             name: schedule.name,
-            count: Number(schedule.count) // 확실히 숫자로 변환
+            count: Number(schedule.count) // 숫자로 변환
         });
     });
 
+    // 빈 스케줄들을 처리하고, 필요 없는 리스트를 생략
+    const responseList = scheduleList.map(daySchedule => {
+        const result = {};
+
+        if (daySchedule.personal.count > 0) {
+            result.personal = daySchedule.personal;
+        }
+
+        if (Object.keys(daySchedule.interests).length > 0) {
+            result.interests = daySchedule.interests;
+        }
+
+        // 만약 둘 다 없다면 빈 리스트 반환
+        if (Object.keys(result).length === 0) {
+            return [];
+        }
+
+        return result;
+    });
+
     return res.status(200).send({
-        list: scheduleList
-    })
-}))
+        list: responseList
+    });
+}));
 
 // 특정 년월 특정 관심사 불러오기
 router.get("/interest", checkAuth(LOGIN), checkValidity({ [YEAR_MONTH_REGEX]: ["yearMonth"], [PARAM_REGEX]: ["interestIdx"] }), endRequestHandler(async (req, res, next) => {
