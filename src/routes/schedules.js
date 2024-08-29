@@ -31,7 +31,10 @@ router.get("/", checkAuth(LOGIN), checkValidity({ [YEAR_MONTH_REGEX]: ["yearMont
     const month = yearMonth.substring(4, 6);
 
     // 날짜별로 빈 리스트 초기화(31개)
-    const scheduleList = Array.from({ length: 31 }, () => []);
+    const scheduleList = Array.from({ length: 31 }, () => ({
+        personal: { count: 0, schedules: [] },
+        interests: {}
+    }));
 
     // 개인 스케줄 가져오기
     const personalScheduleList = await getManyResults(`
@@ -49,33 +52,63 @@ router.get("/", checkAuth(LOGIN), checkValidity({ [YEAR_MONTH_REGEX]: ["yearMont
         GROUP BY idx, EXTRACT(DAY FROM time), contents
     `, [year, month]);
 
-    if (personalScheduleList.length === 0 && interestScheduleList.length === 0) return res.sendStatus(204); 
+    if (personalScheduleList.length === 0 && interestScheduleList.length === 0) return res.sendStatus(204);
 
-    // 개인 스케줄을 날짜별로 리스트에 추가
+    // 개인 스케줄을 날짜별로 리스트에 추가하고 count를 누적
     personalScheduleList.forEach(schedule => {
-        const day = schedule.day - 1; // index값이 day 값은 같게 하기 위해서 1을 뺌
-        scheduleList[day].push({
-            idx: schedule.idx,  // schedule 객체에서 idx를 가져옴
+        const day = schedule.day - 1;
+        scheduleList[day].personal.count += schedule.count;
+        scheduleList[day].personal.schedules.push({
+            idx: schedule.idx,
             type: 'personal',
             count: schedule.count
         });
     });
 
-    // 관심사 스케줄을 날짜별로 리스트에 추가
+    // 관심사 스케줄을 날짜별로 그룹화하여 리스트에 추가
     interestScheduleList.forEach(schedule => {
-        const day = schedule.day - 1; // index값이 day 값은 같게 하기 위해서 1을 뺌
-        scheduleList[day].push({
-            idx: schedule.idx,  // schedule 객체에서 idx를 가져옴
+        const day = schedule.day - 1;
+        if (!scheduleList[day].interests[schedule.name]) {
+            scheduleList[day].interests[schedule.name] = {
+                count: 0,
+                schedules: []
+            };
+        }
+        scheduleList[day].interests[schedule.name].count += schedule.count;
+        scheduleList[day].interests[schedule.name].schedules.push({
+            idx: schedule.idx,
             type: 'interest',
             name: schedule.name,
             count: schedule.count
         });
     });
 
+    // 응답용 데이터로 변환
+    const responseList = scheduleList.map((day, index) => {
+        const result = [];
+        if (day.personal.count > 0) {
+            result.push({
+                type: 'personal',
+                count: day.personal.count,
+                schedules: day.personal.schedules
+            });
+        }
+        Object.keys(day.interests).forEach(interestName => {
+            result.push({
+                type: 'interest',
+                name: interestName,
+                count: day.interests[interestName].count,
+                schedules: day.interests[interestName].schedules
+            });
+        });
+        return { day: index + 1, schedules: result };
+    });
+
     return res.status(200).send({
-        list: scheduleList
-    })
-}))
+        list: responseList
+    });
+}));
+
 
 // 특정 년월 특정 관심사 불러오기
 router.get("/interest", checkAuth(LOGIN), checkValidity({ [YEAR_MONTH_REGEX]: ["yearMonth"], [PARAM_REGEX]: ["interestIdx"] }), endRequestHandler(async (req, res, next) => {
