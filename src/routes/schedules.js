@@ -31,22 +31,19 @@ router.get("/", checkAuth(LOGIN), checkValidity({ [YEAR_MONTH_REGEX]: ["yearMont
     const month = yearMonth.substring(4, 6);
 
     // 날짜별로 빈 리스트 초기화(31개)
-    const scheduleList = Array.from({ length: 31 }, () => ({
-        personal: { count: 0, schedules: [] },
-        interests: {}
-    }));
+    const scheduleList = Array.from({ length: 31 }, () => []);
 
     // 개인 스케줄 가져오기
     const personalScheduleList = await getManyResults(`
-        SELECT idx, EXTRACT(DAY FROM time) as day, COUNT(*) AS count
+        SELECT EXTRACT(DAY FROM time) AS day, COUNT(*)::int AS count
         FROM calenduck.personal_schedule
         WHERE EXTRACT(YEAR FROM time) = $1 AND EXTRACT(MONTH FROM time) = $2
-        GROUP BY idx, EXTRACT(DAY FROM time)
+        GROUP BY EXTRACT(DAY FROM time)
     `, [year, month]);
 
     // 관심사 스케줄 가져오기
     const interestScheduleList = await getManyResults(`
-        SELECT idx, EXTRACT(DAY FROM time) as day, COUNT(*) AS count, contents as name
+        SELECT idx, EXTRACT(DAY FROM time) AS day, COUNT(*)::int AS count, contents AS name
         FROM calenduck.interest_schedule
         WHERE EXTRACT(YEAR FROM time) = $1 AND EXTRACT(MONTH FROM time) = $2
         GROUP BY idx, EXTRACT(DAY FROM time), contents
@@ -54,53 +51,29 @@ router.get("/", checkAuth(LOGIN), checkValidity({ [YEAR_MONTH_REGEX]: ["yearMont
 
     if (personalScheduleList.length === 0 && interestScheduleList.length === 0) return res.sendStatus(204); 
 
-    // 개인 스케줄을 날짜별로 리스트에 추가하고 count를 누적
-    personalScheduleList.forEach(schedule => {
-        const day = schedule.day - 1;
-        scheduleList[day].personal.count += Number(schedule.count); // 숫자로 변환하여 더해줌
-        scheduleList[day].personal.schedules.push({
-            idx: schedule.idx,
+    // 개인 스케줄을 날짜별로 추가
+    personalScheduleList.forEach((schedule) => {
+        const dayIndex = schedule.day - 1; // 배열 인덱스는 0부터 시작
+        scheduleList[dayIndex].push({
             type: 'personal',
-            count: Number(schedule.count) // 숫자로 변환
+            count: schedule.count,
         });
     });
 
-    // 관심사 스케줄을 날짜별로 그룹화하여 리스트에 추가
-    interestScheduleList.forEach(schedule => {
-        const day = schedule.day - 1;
-        if (!scheduleList[day].interests[schedule.name]) {
-            scheduleList[day].interests[schedule.name] = {
-                count: 0,
-                schedules: []
-            };
-        }
-        scheduleList[day].interests[schedule.name].count += Number(schedule.count); // 숫자로 변환하여 더해줌
-        scheduleList[day].interests[schedule.name].schedules.push({
-            idx: schedule.idx,
-            type: 'interest',
-            name: schedule.name,
-            count: Number(schedule.count) // 숫자로 변환
+    // 관심사 스케줄을 날짜별로 추가
+    interestScheduleList.forEach((schedule) => {
+        const dayIndex = schedule.day - 1;
+        scheduleList[dayIndex].push({
+          idx: schedule.idx,
+          type: 'interest',
+          name: schedule.name,
+          count: schedule.count,
         });
     });
 
-    // 빈 스케줄들을 처리하고, 필요 없는 리스트를 생략
-    const responseList = scheduleList.map(daySchedule => {
-        const result = {};
-
-        if (daySchedule.personal.count > 0) {
-            result.personal = daySchedule.personal;
-        }
-
-        if (Object.keys(daySchedule.interests).length > 0) {
-            result.interests = daySchedule.interests;
-        }
-
-        // 만약 둘 다 없다면 빈 리스트 반환
-        if (Object.keys(result).length === 0) {
-            return [];
-        }
-
-        return result;
+    // 빈 스케줄을 빈 리스트로 처리
+    const responseList = scheduleList.map(daySchedules => {
+        return daySchedules.length > 0 ? daySchedules : [];
     });
 
     return res.status(200).send({
