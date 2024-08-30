@@ -176,7 +176,8 @@ router.delete("/", checkAuth(LOGIN), endRequestHandler(async (req, res, next) =>
     if(role === "manager") {
       await psqlClient.query(`
         UPDATE calenduck.interest
-        SET is_assigned = false
+        SET is_assigned = false,
+        expiration_date = CURRENT_DATE + interval '3 month'
         FROM calenduck.manager CM
         WHERE CM.interest_idx = calenduck.interest.idx
         AND CM.user_idx = $1
