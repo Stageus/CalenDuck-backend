@@ -16,10 +16,11 @@ const {
 } = require("../modules/sqlHandler");
 const endRequestHandler = require("../modules/endRequestHandler");
 
-const { DATE_REGEX, 
+const { DATE_REGEX,
+        DATE_TIME_REGEX,
         YEAR_MONTH_REGEX, 
-        MAX_LENGTH_50_REGEX, 
-        MAX_LENGTH_300_REGEX,
+        MAX_LENGTH_50_REGEX,
+        MAX_LENGTH_100_REGEX,
         PARAM_REGEX,
         LOGIN } = require("../constants");
 
@@ -369,7 +370,7 @@ router.delete("/interest/:idx/notify", checkAuth(LOGIN), checkValidity({ [PARAM_
 }))
 
 // 스케줄 생성
-router.post("/", checkAuth(LOGIN), checkValidity({ [DATE_REGEX]: ["fullDate"], [MAX_LENGTH_300_REGEX]: ["personalContents"] }), endRequestHandler(async (req, res, next) => {
+router.post("/", checkAuth(LOGIN), checkValidity({ [DATE_TIME_REGEX]: ["fullDate"], [MAX_LENGTH_100_REGEX]: ["personalContents"] }), endRequestHandler(async (req, res, next) => {
     const { fullDate, personalContents } = req.body;
     const loginUser = req.decoded;
 
@@ -382,7 +383,7 @@ router.post("/", checkAuth(LOGIN), checkValidity({ [DATE_REGEX]: ["fullDate"], [
 }))
 
 // 스케줄 수정
-router.put("/:idx", checkAuth(LOGIN), checkValidity({ [DATE_REGEX]: ["fullDate"], [MAX_LENGTH_300_REGEX]: ["personalContents"], [PARAM_REGEX]: ["idx"] }), endRequestHandler(async (req, res, next) => {
+router.put("/:idx", checkAuth(LOGIN), checkValidity({ [DATE_TIME_REGEX]: ["fullDate"], [MAX_LENGTH_100_REGEX]: ["personalContents"], [PARAM_REGEX]: ["idx"] }), endRequestHandler(async (req, res, next) => {
     const { fullDate, personalContents } = req.body;
     const { idx } = req.params;
     const loginUser = req.decoded;
