@@ -146,7 +146,8 @@ router.post("/users/permission", checkAuth(MASTER), checkValidity({ [PARAM_REGEX
     `, [userIdx]);
     await psqlClient.query(`
         UPDATE calenduck.interest
-        SET is_assigned = true
+        SET is_assigned = true,
+        expiration_date = NULL
         WHERE idx = $1    
     `, [interestIdx]);
 
