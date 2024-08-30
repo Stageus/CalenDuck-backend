@@ -297,7 +297,8 @@ router.delete("/managers/:idx/permission", checkAuth(MASTER), checkValidity({ [P
     `, [managerIdx]);
     await psqlClient.query(`
         UPDATE calenduck.interest
-        SET is_assigned = false
+        SET is_assigned = false,
+        expiration_date = CURRENT_DATE + interval '3 month'
         WHERE idx = $1
     `, [interestIdx])
     await psqlClient.query(`
