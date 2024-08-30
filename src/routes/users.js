@@ -23,10 +23,7 @@ const { SIGNUP, FIND_ID, FIND_PW, LOGIN } = require("../constants");
 
 //로그인
 router.post("/login", checkValidity({[ID_REGEX]: ["id"], [PW_REGEX]: ["pw"]}), endRequestHandler(async (req, res, next) => {
-  console.log("Received login request");
-
   const { id, pw } = req.body;
-  console.log("Request body:", { id, pw });
 
   const loginUser = await getOneResult(`
     SELECT CU.idx, CU.role, CM.interest_idx, CI.interest
@@ -38,13 +35,7 @@ router.post("/login", checkValidity({[ID_REGEX]: ["id"], [PW_REGEX]: ["pw"]}), e
     WHERE CL.id = $1 AND CL.pw = $2
   `, [id, pw]);
 
-  console.log("Database query result:", loginUser);
-
-  if (!loginUser) {
-    console.log("No user found");
-    return next(new UnauthorizedException());
-  }
-  console.log("User found:", loginUser);
+  if (!loginUser) return next(new UnauthorizedException());
 
   const accessToken = makeToken({
     type: LOGIN,
@@ -53,7 +44,6 @@ router.post("/login", checkValidity({[ID_REGEX]: ["id"], [PW_REGEX]: ["pw"]}), e
     interestIdx: loginUser.interest_idx,
     interestName: loginUser.interest,
   });
-  console.log("Access token created:", accessToken);
 
   return res.status(200).send({
     token: accessToken
