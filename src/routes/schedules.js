@@ -377,24 +377,13 @@ router.delete("/interest/:idx/notify", checkAuth(LOGIN), checkValidity({ [PARAM_
 
 // 스케줄 생성
 router.post("/", checkAuth(LOGIN), checkValidity({ [DATE_TIME_REGEX]: ["fullDate"], [MAX_LENGTH_100_REGEX]: ["personalContents"] }), endRequestHandler(async (req, res, next) => {
-    // 요청 본문 로그
-    console.log("Request body:", req.body);
-
     const { fullDate, personalContents } = req.body;
-    // 파싱된 값 로그
-    console.log("Parsed fullDate:", fullDate);
-    console.log("Parsed personalContents:", personalContents);
-
     const loginUser = req.decoded;
-    // 로그인 사용자 정보 로그
-    console.log("Decoded user:", loginUser);
 
     await psql.query(`
         INSERT INTO calenduck.personal_schedule (user_idx, time, contents)
         VALUES ($1, $2, $3)
     `, [loginUser.idx, fullDate, personalContents]);
-    // 쿼리 성공 로그
-    console.log("Insert query executed successfully.");
 
     return res.sendStatus(201);
 }))
