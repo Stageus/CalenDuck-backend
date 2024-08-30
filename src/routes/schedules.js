@@ -27,6 +27,7 @@ const { DATE_REGEX,
 // 특정 년월 스케줄 전체 불러오기
 router.get("/", checkAuth(LOGIN), checkValidity({ [YEAR_MONTH_REGEX]: ["yearMonth"], }), endRequestHandler(async (req, res, next) => {
     const { yearMonth } = req.query;
+    const loginUser = req.decoded;
 
     const year = yearMonth.substring(0, 4);
     const month = yearMonth.substring(4, 6);
@@ -38,9 +39,9 @@ router.get("/", checkAuth(LOGIN), checkValidity({ [YEAR_MONTH_REGEX]: ["yearMont
     const personalScheduleList = await getManyResults(`
         SELECT EXTRACT(DAY FROM time) AS day, COUNT(*)::int AS count
         FROM calenduck.personal_schedule
-        WHERE EXTRACT(YEAR FROM time) = $1 AND EXTRACT(MONTH FROM time) = $2
+        WHERE EXTRACT(YEAR FROM time) = $1 AND EXTRACT(MONTH FROM time) = $2 AND user_idx = $3
         GROUP BY EXTRACT(DAY FROM time)
-    `, [year, month]);
+    `, [year, month, loginUser.idx]);
 
     // 관심사 스케줄 가져오기
     const interestScheduleList = await getManyResults(`
@@ -162,6 +163,7 @@ router.get("/details/interest", checkAuth(LOGIN), checkValidity({ [DATE_REGEX]: 
 // 특정 날짜 스케줄 전체 불러오기
 router.get("/details", checkAuth(LOGIN), checkValidity({ [DATE_REGEX]: ["fullDate"] }), endRequestHandler(async (req, res, next) => {
     const { fullDate } = req.query;
+    const loginUser = req.decoded;
 
     const year = fullDate.substring(0, 4);
     const month = fullDate.substring(4, 6);
@@ -174,8 +176,8 @@ router.get("/details", checkAuth(LOGIN), checkValidity({ [DATE_REGEX]: ["fullDat
     const personalScheduleList = await getManyResults(`
         SELECT personal_schedule.idx AS idx, personal_schedule.time AS time, personal_schedule.contents AS contents, personal_schedule.priority AS priority
         FROM calenduck.personal_schedule
-        WHERE DATE(personal_schedule.time) = DATE($1)
-    `, [`${year}-${month}-${day}`]);
+        WHERE DATE(personal_schedule.time) = DATE($1) AND personal_schedule.user_idx = $2
+    `, [`${year}-${month}-${day}`, loginUser.idx]);
 
     // 관심사 스케줄 가져오기
     const interestScheduleList = await getManyResults(`
@@ -220,6 +222,7 @@ router.get("/details", checkAuth(LOGIN), checkValidity({ [DATE_REGEX]: ["fullDat
 // 스케줄 검색
 router.get("/searches", checkAuth(LOGIN), checkValidity({ [DATE_REGEX]: ["startDate"],[DATE_REGEX]: ["endDate"],[MAX_LENGTH_50_REGEX]: ["content"] }),endRequestHandler(async (req, res, next) => {
     const { startDate, endDate, content } = req.query;
+    const loginUser = req.decoded;
 
     // 빈 리스트 초기화
     const scheduleList = [];
@@ -230,7 +233,8 @@ router.get("/searches", checkAuth(LOGIN), checkValidity({ [DATE_REGEX]: ["startD
         FROM calenduck.personal_schedule
         WHERE (personal_schedule.time BETWEEN TO_DATE($1, 'YYYYMMDD') AND TO_DATE($2, 'YYYYMMDD'))
         AND personal_schedule.contents ILIKE '%' || $3 || '%'
-    `, [startDate, endDate, content]);
+        AND personal_schedule.user_idx = $4
+    `, [startDate, endDate, content, loginUser.idx]);
 
     // 관심사 스케줄 검색
     const interestScheduleList = await getManyResults(`
@@ -276,23 +280,24 @@ router.get("/searches", checkAuth(LOGIN), checkValidity({ [DATE_REGEX]: ["startD
 // 스케줄 중요 알림 설정 추가하기
 router.post(":idx/notify", checkAuth(LOGIN), checkValidity({ [PARAM_REGEX]: ["idx"] }), endRequestHandler(async (req, res, next) => {
     const { idx } = req.params;
+    const loginUser = req.decoded;
 
     // 해당 스케줄의 현재 priority 값 조회
     const schedule = await getOneResult(`
         SELECT priority
         FROM calenduck.personal_schedule
-        WHERE idx = $1
-    `, [idx]);
+        WHERE idx = $1 AND user_idx = $2
+    `, [idx, loginUser.idx]);
 
     // 해당 스케줄 없을 시
     if (!schedule) return next(new NotFoundException());
 
     // priority 값을 true로 설정
     await psql.query(`
-       UPDATE calenduck.personal_schedule
-       SET priority = true
-       WHERE idx = $1
-    `, [idx]);
+        UPDATE calenduck.personal_schedule
+        SET priority = true
+        WHERE idx = $1 AND user_idx = $2
+    `, [idx, loginUser.idx]);
 
    return res.sendStatus(201);
 }))
@@ -300,13 +305,14 @@ router.post(":idx/notify", checkAuth(LOGIN), checkValidity({ [PARAM_REGEX]: ["id
 // 스케줄 중요 알림 설정 삭제하기
 router.delete(":idx/notify", checkAuth(LOGIN), checkValidity({ [PARAM_REGEX]: ["idx"] }), endRequestHandler(async (req, res, next) => {
     const { idx } = req.params;
+    const loginUser = req.decoded;
 
     // 해당 스케줄의 현재 priority 값 조회
     const schedule = await getOneResult(`
         SELECT priority
         FROM calenduck.personal_schedule
-        WHERE idx = $1
-    `, [idx]);
+        WHERE idx = $1 AND user_idx = $2
+    `, [idx, loginUser.idx]);
 
     // 해당 스케줄 없을 시
     if (!schedule) return next(new NotFoundException());
@@ -315,8 +321,8 @@ router.delete(":idx/notify", checkAuth(LOGIN), checkValidity({ [PARAM_REGEX]: ["
     await psql.query(`
         UPDATE calenduck.personal_schedule
         SET priority = false
-        WHERE idx = $1
-    `, [idx]);
+        WHERE idx = $1 AND user_idx = $2
+    `, [idx, loginUser.idx]);
 
    return res.sendStatus(201);
 }))
@@ -386,7 +392,7 @@ router.post("/", checkAuth(LOGIN), checkValidity({ [DATE_TIME_REGEX]: ["fullDate
     await psql.query(`
         INSERT INTO calenduck.personal_schedule (user_idx, time, contents)
         VALUES ($1, $2, $3)
-    `, [loginUser, fullDate, personalContents]);
+    `, [loginUser.idx, fullDate, personalContents]);
     // 쿼리 성공 로그
     console.log("Insert query executed successfully.");
 
@@ -413,7 +419,7 @@ router.put("/:idx", checkAuth(LOGIN), checkValidity({ [DATE_TIME_REGEX]: ["fullD
         UPDATE calenduck.personal_schedule
         SET time = $1, contents = $2
         WHERE idx = $3 AND user_idx = $4 
-    `, [fullDate, personalContents, idx, loginUser]);
+    `, [fullDate, personalContents, idx, loginUser.idx]);
 
     return res.sendStatus(201);
 }))
@@ -435,7 +441,7 @@ router.delete("/:idx", checkAuth(LOGIN), checkValidity({ [PARAM_REGEX]: ["idx"] 
     await psql.query(`
         DELETE FROM calenduck.personal_schedule
         WHERE idx = $1 AND user_idx = $2
-    `, [idx, loginUser]);
+    `, [idx, loginUser.idx]);
 
     return res.sendStatus(201);
 }))
