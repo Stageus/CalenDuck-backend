@@ -108,7 +108,7 @@ router.get("/interest", checkAuth(LOGIN), checkValidity({ [YEAR_MONTH_REGEX]: ["
     interestScheduleList.forEach(schedule => {
         const day = schedule.day - 1; // index값이 day 값은 같게 하기 위해서 1을 뺌
         scheduleList[day].push({
-            idx: idx,
+            idx: schedule.idx,
             interestName: schedule.interestname,
             count: schedule.count
         });
