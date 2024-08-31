@@ -102,7 +102,7 @@ router.get("/interest", checkAuth(LOGIN), checkValidity({ [YEAR_MONTH_REGEX]: ["
         GROUP BY idx, EXTRACT(DAY FROM time), contents;
     `, [year, month, interestIdx]);
 
-    if (interestScheduleList === 0) return res.sendStatus(204); 
+    if (interestScheduleList.length === 0) return res.sendStatus(204);
 
     // 관심사 스케줄을 날짜별로 리스트에 추가
     interestScheduleList.forEach(schedule => {
