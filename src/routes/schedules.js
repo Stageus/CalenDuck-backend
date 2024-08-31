@@ -132,7 +132,7 @@ router.get("/details/interest", checkAuth(LOGIN), checkValidity({ [DATE_REGEX]: 
 
     // 관심사 스케줄 불러오기
     const interestScheduleList = await getManyResults(`
-        SELECT interest_schedule.idx, interest_schedule.time, interest_schedule.contents, interest_schedule.priority, interest.interest as name
+        SELECT interest_schedule.idx, interest_schedule.time, interest_schedule.contents, interest.interest as name
         FROM calenduck.interest_schedule
         JOIN calenduck.interest ON interest_schedule.interest_idx = interest.idx
         WHERE DATE(interest_schedule.time) = DATE($1)
@@ -150,7 +150,6 @@ router.get("/details/interest", checkAuth(LOGIN), checkValidity({ [DATE_REGEX]: 
             name: schedule.name,
             time: schedule.time,
             contents: schedule.contents,
-            priority: schedule.priority
         });
     });
 
