@@ -94,6 +94,14 @@ router.get("/interest", checkAuth(LOGIN), checkValidity({ [YEAR_MONTH_REGEX]: ["
     // 날짜별로 빈 리스트 초기화(31개)
     const scheduleList = Array.from({ length: 31 }, () => []);
 
+    const interestExists = await getOneResult(`
+        SELECT 1 
+        FROM calenduck.interest 
+        WHERE idx = $1
+    `, [interestIdx]);
+
+    if (!interestExists) return next(new NotFoundException());
+    
     // 관심사 스케줄 가져오기
     const interestScheduleList = await getManyResults(`
         SELECT idx, COUNT(*) AS count, EXTRACT(DAY FROM time) as day, contents as interestName
