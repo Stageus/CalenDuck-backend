@@ -99,7 +99,7 @@ router.get("/interest", checkAuth(LOGIN), checkValidity({ [YEAR_MONTH_REGEX]: ["
         SELECT idx, COUNT(*) AS count, EXTRACT(DAY FROM time) as day, contents as interestName
         FROM calenduck.interest_schedule
         WHERE EXTRACT(YEAR FROM time) = $1 AND EXTRACT(MONTH FROM time) = $2 AND interest_idx = $3
-        GROUP BY EXTRACT(DAY FROM time), contents
+        GROUP BY idx, EXTRACT(DAY FROM time), contents;
     `, [year, month, interestIdx]);
 
     if (interestScheduleList === 0) return res.sendStatus(204); 
