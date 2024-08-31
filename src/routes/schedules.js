@@ -88,20 +88,22 @@ router.get("/", checkAuth(LOGIN), checkValidity({ [YEAR_MONTH_REGEX]: ["yearMont
 router.get("/interest", checkAuth(LOGIN), checkValidity({ [YEAR_MONTH_REGEX]: ["yearMonth"], [PARAM_REGEX]: ["interestIdx"] }), endRequestHandler(async (req, res, next) => {
     const { yearMonth, interestIdx } = req.query;
 
+    // 관심사 idx 조회
+    const interest = await getOneResult(`
+        SELECT 1 
+        FROM calenduck.interest 
+        WHERE idx = $1
+    `, [interestIdx]);
+    
+    // 관심사 idx가 없을 시
+    if (!interest) return next(new NotFoundException());
+
     const year = yearMonth.substring(0, 4);
     const month = yearMonth.substring(4, 6);
 
     // 날짜별로 빈 리스트 초기화(31개)
     const scheduleList = Array.from({ length: 31 }, () => []);
 
-    const interestExists = await getOneResult(`
-        SELECT 1 
-        FROM calenduck.interest 
-        WHERE idx = $1
-    `, [interestIdx]);
-
-    if (!interestExists) return next(new NotFoundException());
-    
     // 관심사 스케줄 가져오기
     const interestScheduleList = await getManyResults(`
         SELECT idx, COUNT(*) AS count, EXTRACT(DAY FROM time) as day, contents as interestName
@@ -130,6 +132,16 @@ router.get("/interest", checkAuth(LOGIN), checkValidity({ [YEAR_MONTH_REGEX]: ["
 // 특정 날짜에서 특정 관심사 불러오기
 router.get("/details/interest", checkAuth(LOGIN), checkValidity({ [DATE_REGEX]: ["fullDate"], [PARAM_REGEX]: ["interestIdx"] }), endRequestHandler(async (req, res, next) => {
     const { fullDate, interestIdx } = req.query;
+
+    // 관심사 idx 조회
+    const interest = await getOneResult(`
+        SELECT 1 
+        FROM calenduck.interest 
+        WHERE idx = $1
+    `, [interestIdx]);
+
+    // 관심사 idx가 없을 시
+    if (!interest) return next(new NotFoundException());
 
     const year = fullDate.substring(0, 4); 
     const month = fullDate.substring(4, 6);
