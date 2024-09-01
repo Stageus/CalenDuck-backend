@@ -55,7 +55,7 @@ router.get("/interests", checkAuth(MASTER), endRequestHandler(async (req, res, n
 }))
 
 // 모든 관심사 목록 불러오기
-router.get("/interest/all", checkAuth(MASTER), endRequestHandler(async (req, res, next) => {
+router.get("/interests/all", checkAuth(MASTER), endRequestHandler(async (req, res, next) => {
     const interestList = await getManyResults(`
       SELECT idx AS "interestIdx", interest AS "interestName"
       FROM calenduck.interest
@@ -182,7 +182,7 @@ router.post("/asks/:idx/reply", checkAuth(MASTER), checkValidity({ [MAX_LENGTH_3
 }))
 
 // 관심사 수정
-router.put("/interest/:idx", checkAuth(MASTER), checkValidity({ [MAX_LENGTH_100_REGEX]: ["interestName"], [PARAM_REGEX]: ["idx"] }), endRequestHandler(async (req, res, next) => {
+router.put("/interests/:idx", checkAuth(MASTER), checkValidity({ [MAX_LENGTH_100_REGEX]: ["interestName"], [PARAM_REGEX]: ["idx"] }), endRequestHandler(async (req, res, next) => {
     const { interestName } = req.body;
     const interestIdx = req.params.idx;
 
@@ -245,15 +245,13 @@ router.put("/managers/assignment", checkAuth(MASTER), checkValidity({ [PARAM_REG
 }))
 
 // 관심사 삭제
-router.delete("/interest/:idx", checkAuth(MASTER), checkValidity({ [PARAM_REGEX]: ["idx"] }), endRequestHandler(async (req, res, next) => {
+router.delete("/interests/:idx", checkAuth(MASTER), checkValidity({ [PARAM_REGEX]: ["idx"] }), endRequestHandler(async (req, res, next) => {
     const interestIdx = req.params.idx;
 
     const manager = await getOneResult(`
         SELECT user_idx FROM calenduck.manager
         WHERE interest_idx = $1
     `, [interestIdx]);
-
-    if (!manager) return res.sendStatus(201); // null인 경우 바로 응답.
 
     const psqlClient = await psql.connect();
 
