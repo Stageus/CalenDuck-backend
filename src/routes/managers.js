@@ -36,7 +36,7 @@ router.post("/schedules/interests", checkAuth(MANAGER), checkValidity({ [DATE_TI
 }))
 
 // 관심사 스케줄 수정
-router.put("/schedules/interests/:idx", checkAuth(MANAGER), checkValidity({ "dateField": ["fullDate"], "stringField": ["interestContents"], "numberField": ["idx"] }), endRequestHandler(async (req, res, next) => {
+router.put("/schedules/interests/:idx", checkAuth(MANAGER), checkValidity({ [DATE_TIME_REGEX]: ["fullDate"], [MAX_LENGTH_100_REGEX]: ["interestContents"], [PARAM_REGEX]: ["idx"] }), endRequestHandler(async (req, res, next) => {
     const { fullDate, interestContents } = req.body;
     const { idx } = req.params;
 
