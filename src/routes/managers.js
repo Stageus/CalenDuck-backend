@@ -21,7 +21,7 @@ const { DATE_TIME_REGEX,
         MANAGER } = require("../constants");
 
 // 관심사 스케줄 생성
-router.post("/schedules/interests", checkAuth(MANAGER), checkValidity({ "dateField": ["fullDate"], "stringField": ["interestContents"] }), endRequestHandler(async (req, res, next) => {
+router.post("/schedules/interests", checkAuth(MANAGER), checkValidity({ [DATE_TIME_REGEX]: ["fullDate"], [MAX_LENGTH_100_REGEX]: ["interestContents"] }), endRequestHandler(async (req, res, next) => {
     const { fullDate, interestContents } = req.body
     
     await psql.query(`
