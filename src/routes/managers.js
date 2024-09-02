@@ -62,7 +62,7 @@ router.put("/schedules/interests/:idx", checkAuth(MANAGER), checkValidity({ [DAT
 }))
 
 // 관심사 스케줄 삭제
-router.put("/schedules/interests/:idx", checkAuth(MANAGER), checkValidity({ [PARAM_REGEX]: ["idx"] }), endRequestHandler(async (req, res, next) => {
+router.delete("/schedules/interests/:idx", checkAuth(MANAGER), checkValidity({ [PARAM_REGEX]: ["idx"] }), endRequestHandler(async (req, res, next) => {
     const { idx } = req.params;
     const loginUser = req.decoded;
 
