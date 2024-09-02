@@ -64,6 +64,7 @@ router.put("/schedules/interests/:idx", checkAuth(MANAGER), checkValidity({ [DAT
 // 관심사 스케줄 삭제
 router.put("/schedules/interests/:idx", checkAuth(MANAGER), checkValidity({ "numberField": ["idx"] }), endRequestHandler(async (req, res, next) => {
     const { idx } = req.params;
+    const loginUser = req.decoded;
 
     // 스케줄 존재 여부 확인
     const interestSchedule = await getOneResult(`
