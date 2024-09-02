@@ -297,7 +297,7 @@ router.get("/searches", checkAuth(LOGIN), checkValidity({ [DATE_REGEX]: ["startD
 }))
 
 // 스케줄 중요 알림 설정 추가하기
-router.post(":idx/notify", checkAuth(LOGIN), checkValidity({ [PARAM_REGEX]: ["idx"] }), endRequestHandler(async (req, res, next) => {
+router.post("/:idx/notify", checkAuth(LOGIN), checkValidity({ [PARAM_REGEX]: ["idx"] }), endRequestHandler(async (req, res, next) => {
     const { idx } = req.params;
     const loginUser = req.decoded;
 
@@ -311,7 +311,7 @@ router.post(":idx/notify", checkAuth(LOGIN), checkValidity({ [PARAM_REGEX]: ["id
     // 해당 스케줄 없을 시
     if (!schedule) return next(new NotFoundException());
 
-    // priority 값을 true로 설정
+    // priority 값을 true로 설정ㅁ
     await psql.query(`
         UPDATE calenduck.personal_schedule
         SET priority = true
@@ -322,7 +322,7 @@ router.post(":idx/notify", checkAuth(LOGIN), checkValidity({ [PARAM_REGEX]: ["id
 }))
 
 // 스케줄 중요 알림 설정 삭제하기
-router.delete(":idx/notify", checkAuth(LOGIN), checkValidity({ [PARAM_REGEX]: ["idx"] }), endRequestHandler(async (req, res, next) => {
+router.delete("/:idx/notify", checkAuth(LOGIN), checkValidity({ [PARAM_REGEX]: ["idx"] }), endRequestHandler(async (req, res, next) => {
     const { idx } = req.params;
     const loginUser = req.decoded;
 
