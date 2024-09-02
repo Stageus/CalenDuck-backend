@@ -349,6 +349,7 @@ router.delete("/:idx/notify", checkAuth(LOGIN), checkValidity({ [PARAM_REGEX]: [
 // 관심사 스케줄 중요 알림 설정 추가하기
 router.post("/interest/:idx/notify", checkAuth(LOGIN), checkValidity({ [PARAM_REGEX]: ["idx"] }), endRequestHandler(async (req, res, next) => {
     const { idx } = req.params;
+    const loginUser = req.decoded;
 
     // 해당 관심사 스케줄의 현재 priority 값 조회
     const interestSchedule = await getOneResult(`
@@ -360,12 +361,11 @@ router.post("/interest/:idx/notify", checkAuth(LOGIN), checkValidity({ [PARAM_RE
     // 해당 스케줄 없을 시
     if (!interestSchedule) return next(new NotFoundException());
 
-    // priority 값을 true로 설정
+    // 새로운 중요 알림 추가
     await psql.query(`
-        UPDATE calenduck.interest_schedule
-            SET priority = true;
-            WHERE idx = $1
-     `, [idx]);
+        INSERT INTO calenduck.interest_priority (user_idx, interest_schedule_idx)
+        VALUES ($1, $2)
+    `, [loginUser.idx, idx]);
 
      return res.sendStatus(201);
 }))
@@ -373,6 +373,8 @@ router.post("/interest/:idx/notify", checkAuth(LOGIN), checkValidity({ [PARAM_RE
 // 관심사 스케줄 중요 알림 설정 삭제하기
 router.delete("/interest/:idx/notify", checkAuth(LOGIN), checkValidity({ [PARAM_REGEX]: ["idx"] }), endRequestHandler(async (req, res, next) => {
     const { idx } = req.params;
+    const loginUser = req.decoded;
+
 
     // 해당 관심사 스케줄의 현재 priority 값 조회
     const interestSchedule = await getOneResult(`
@@ -384,12 +386,12 @@ router.delete("/interest/:idx/notify", checkAuth(LOGIN), checkValidity({ [PARAM_
     // 해당 스케줄 없을 시
     if (!interestSchedule) return next(new NotFoundException());
 
-    // priority 값을 false로 설정
+    // 새로운 중요 알림 추가
     await psql.query(`
-        UPDATE calenduck.interest_schedule
-            SET priority = false;
-            WHERE idx = $1
-    `, [idx]);
+        DELETE FROM calenduck.interest_priority
+        WHERE interest_schedule_idx = $1 AND user_idx = $2
+    `, [idx, loginUser.idx]);
+    
 
     return res.sendStatus(201);
 }))
