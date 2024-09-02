@@ -52,10 +52,11 @@ router.put("/schedules/interests/:idx", checkAuth(MANAGER), checkValidity({ [DAT
 
     // 스케줄 수정
     await psql.query(`
-        UPDATE calenduck.interest_schedule
-        SET time = $1, contents = $2
-        WHERE idx = $3
-    `, [fullDate, interestContents, idx]);
+        UPDATE calenduck.interest_schedule CIS
+        SET time = $1, contents = $2, interest_idx = CM.interest_idx
+        FROM calenduck.manager CM
+        WHERE CIS.idx = $3 AND CM.user_idx = $4
+    `, [fullDate, interestContents, idx, loginUser.idx]);
 
     return res.sendStatus(201);
 }))
