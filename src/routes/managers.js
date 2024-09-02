@@ -39,6 +39,7 @@ router.post("/schedules/interests", checkAuth(MANAGER), checkValidity({ [DATE_TI
 router.put("/schedules/interests/:idx", checkAuth(MANAGER), checkValidity({ [DATE_TIME_REGEX]: ["fullDate"], [MAX_LENGTH_100_REGEX]: ["interestContents"], [PARAM_REGEX]: ["idx"] }), endRequestHandler(async (req, res, next) => {
     const { fullDate, interestContents } = req.body;
     const { idx } = req.params;
+    const loginUser = req.decoded;
 
     // 스케줄 존재 여부 확인
     const interestSchedule = await getOneResult(`
