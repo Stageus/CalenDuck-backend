@@ -57,13 +57,6 @@ app.use("/users", usersApi);
 app.use("/interests", interestsApi);
 app.use("/asks", asksApi);
 
-// '/schedules' 경로만 콘솔에 출력
-app._router.stack.forEach(function(r){
-  if (r.route && r.route.path && r.route.path.startsWith('/schedules')) {
-      console.log(r.route.path);
-  }
-});
-
 app.use(notFoundApi);
 app.use(errorHandler);
 
