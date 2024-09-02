@@ -15,7 +15,10 @@ const {
 } = require("../modules/sqlHandler");
 const endRequestHandler = require("../modules/endRequestHandler");
 
-const { MANAGER } = require("../constants");
+const { DATE_TIME_REGEX,
+        MAX_LENGTH_100_REGEX,
+        PARAM_REGEX,
+        MANAGER } = require("../constants");
 
 // 관심사 스케줄 생성
 router.post("/schedules/interests", checkAuth(MANAGER), checkValidity({ "dateField": ["fullDate"], "stringField": ["interestContents"] }), endRequestHandler(async (req, res, next) => {
