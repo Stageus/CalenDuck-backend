@@ -351,14 +351,14 @@ router.post("/interest/:idx/notify", checkAuth(LOGIN), checkValidity({ [PARAM_RE
     const { idx } = req.params;
     const loginUser = req.decoded;
 
-    // 해당 관심사 스케줄의 현재 priority 값 조회
+    // 해당 관심사 스케줄 존재 여부 조회
     const interestSchedule = await getOneResult(`
         SELECT 1
-        FROM calenduck.interest_priority
-        WHERE interest_schedule_idx = $1 AND user_idx = $2
-    `, [idx, loginUser.idx]);
+        FROM calenduck.interest_schedule
+        WHERE idx = $1
+    `, [idx]);
 
-    // 해당 스케줄 없을 시
+    // 해당 관심사 스케줄 없을 시
     if (!interestSchedule) return next(new NotFoundException());
 
     // 새로운 중요 알림 추가
@@ -375,17 +375,17 @@ router.delete("/interest/:idx/notify", checkAuth(LOGIN), checkValidity({ [PARAM_
     const { idx } = req.params;
     const loginUser = req.decoded;
 
-    // 해당 관심사 스케줄의 현재 priority 값 조회
+    // 해당 관심사 스케줄 존재 여부 조회
     const interestSchedule = await getOneResult(`
         SELECT 1
-        FROM calenduck.interest_priority
-        WHERE interest_schedule_idx = $1 AND user_idx = $2
-    `, [idx, loginUser.idx]);
+        FROM calenduck.interest_schedule
+        WHERE idx = $1
+    `, [idx]);
 
-    // 해당 스케줄 없을 시
+    // 해당 관심사 스케줄 없을 시
     if (!interestSchedule) return next(new NotFoundException());
 
-    // 새로운 중요 알림 추가
+    // 새로운 중요 알림 삭제
     await psql.query(`
         DELETE FROM calenduck.interest_priority
         WHERE interest_schedule_idx = $1 AND user_idx = $2
