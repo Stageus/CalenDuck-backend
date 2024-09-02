@@ -26,10 +26,12 @@ router.post("/schedules/interests", checkAuth(MANAGER), checkValidity({ [DATE_TI
     const loginUser = req.decoded;
     
     await psql.query(`
-        INSERT INTO calenduck.interest_schedule (time, contents) 
-        VALUES ($1, $2)
-    `, [fullDate, interestContents]);
-
+        INSERT INTO calenduck.interest_schedule (user_idx, interest_idx, time, contents)
+        SELECT CM.user_idx, CM.interest_idx, $1, $2
+        FROM calenduck.manager CM
+        WHERE CM.user_idx = $3
+    `, [fullDate, interestContents, loginUser.idx]);
+    
     return res.sendStatus(201);
 }))
 
