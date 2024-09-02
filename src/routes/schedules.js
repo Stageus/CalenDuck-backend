@@ -353,10 +353,10 @@ router.post("/interest/:idx/notify", checkAuth(LOGIN), checkValidity({ [PARAM_RE
 
     // 해당 관심사 스케줄의 현재 priority 값 조회
     const interestSchedule = await getOneResult(`
-        SELECT priority
-        FROM calenduck.interest_schedule
-        WHERE idx = $1
-    `, [idx]);
+        SELECT 1
+        FROM calenduck.interest_priority
+        WHERE interest_schedule_idx = $1 AND user_idx = $2
+    `, [idx, loginUser.idx]);
 
     // 해당 스케줄 없을 시
     if (!interestSchedule) return next(new NotFoundException());
@@ -375,13 +375,12 @@ router.delete("/interest/:idx/notify", checkAuth(LOGIN), checkValidity({ [PARAM_
     const { idx } = req.params;
     const loginUser = req.decoded;
 
-
     // 해당 관심사 스케줄의 현재 priority 값 조회
     const interestSchedule = await getOneResult(`
-        SELECT priority
-        FROM calenduck.interest_schedule
-        WHERE idx = $1
-    `, [idx]);
+        SELECT 1
+        FROM calenduck.interest_priority
+        WHERE interest_schedule_idx = $1 AND user_idx = $2
+    `, [idx, loginUser.idx]);
 
     // 해당 스케줄 없을 시
     if (!interestSchedule) return next(new NotFoundException());
@@ -391,7 +390,6 @@ router.delete("/interest/:idx/notify", checkAuth(LOGIN), checkValidity({ [PARAM_
         DELETE FROM calenduck.interest_priority
         WHERE interest_schedule_idx = $1 AND user_idx = $2
     `, [idx, loginUser.idx]);
-    
 
     return res.sendStatus(201);
 }))
@@ -419,8 +417,8 @@ router.put("/:idx", checkAuth(LOGIN), checkValidity({ [DATE_TIME_REGEX]: ["fullD
     const personalSchedule = await getOneResult(`
         SELECT 1
         FROM calenduck.personal_schedule
-        WHERE idx = $1
-    `, [idx]);
+        WHERE idx = $1 AND user_idx = $2
+    `, [idx, loginUser.idx]);
 
     if (!personalSchedule) return next(new NotFoundException());
 
@@ -443,8 +441,8 @@ router.delete("/:idx", checkAuth(LOGIN), checkValidity({ [PARAM_REGEX]: ["idx"] 
     const personalSchedule = await getOneResult(`
         SELECT 1
         FROM calenduck.personal_schedule
-        WHERE idx = $1
-    `, [idx]);
+        WHERE idx = $1 AND user_idx = $2
+    `, [idx, loginUser.idx]);
 
     if (!personalSchedule) return next(new NotFoundException());
 
