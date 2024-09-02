@@ -301,9 +301,6 @@ router.post(":idx/notify", checkAuth(LOGIN), checkValidity({ [PARAM_REGEX]: ["id
     const { idx } = req.params;
     const loginUser = req.decoded;
 
-    console.log("Received idx:", idx);
-    console.log("Decoded user:", loginUser);
-
     // 해당 스케줄의 현재 priority 값 조회
     const schedule = await getOneResult(`
         SELECT priority
@@ -311,13 +308,8 @@ router.post(":idx/notify", checkAuth(LOGIN), checkValidity({ [PARAM_REGEX]: ["id
         WHERE idx = $1 AND user_idx = $2
     `, [idx, loginUser.idx]);
 
-    console.log("Retrieved schedule:", schedule);
-
     // 해당 스케줄 없을 시
-    if (!schedule) {
-        console.log("Schedule not found");
-        return next(new NotFoundException());
-    }
+    if (!schedule) return next(new NotFoundException());
 
     // priority 값을 true로 설정
     await psql.query(`
@@ -325,8 +317,6 @@ router.post(":idx/notify", checkAuth(LOGIN), checkValidity({ [PARAM_REGEX]: ["id
         SET priority = true
         WHERE idx = $1 AND user_idx = $2
     `, [idx, loginUser.idx]);
-
-    console.log("Priority updated for schedule with idx:", idx);
 
    return res.sendStatus(201);
 }))
