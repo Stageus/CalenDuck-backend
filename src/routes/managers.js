@@ -3,8 +3,8 @@ const router = require("express").Router();
 
 const psql = require("../../database/connect/postgre");
 
-const checkValidity = require("../middlewares/checkValidity");
 const checkAuth = require("../middlewares/checkAuth");
+const checkValidity = require("../middlewares/checkValidity");
 
 const { 
     NotFoundException 
