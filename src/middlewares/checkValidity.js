@@ -46,29 +46,41 @@ const checkValidity = (data) => {
                     req.params[item] ? (source = "params", req.params[item]) :
                         req.query[item] ? (source = "query", req.query[item]) :
                             null;
+                
+                console.log(`Checking item: ${item}`);
+                console.log(`Source: ${source}`);
+                console.log(`Value: ${value}`);
 
                 const stringFieldArray = [MAX_LENGTH_50_REGEX.source, MAX_LENGTH_100_REGEX.source, MAX_LENGTH_300_REGEX.source];
 
                 const regexParts = typeKey.match(/\/(.*?)\/([gimy]*)$/);
                 const regex = new RegExp(regexParts[1], regexParts[2]);
 
+
                 // 값이 없으면, 에러처리
                 if (!value) {
+                    console.log(`No value found for item: ${item}`);
                     return next(new BadRequestException());
                 }
 
                 if (!regex.test(value)) {
+                    console.log(`Parsing integer for item: ${item}`);
                     return next(new BadRequestException());
                 }
 
                 if (regex.source === PARAM_REGEX.source) {
+                    console.log(`Parsing integer for item: ${item}`);
                     req[source][item] = parseInt(req[source][item]);
                 } else if (stringFieldArray.includes(regex.source)) {
+                    console.log(`Trimming whitespace for item: ${item}`);
                     req[source][item] = value.replace(WHITESPACE_REGEX, ' ');
                 }
+                
+                console.log(`Final value for ${item}: ${req[source][item]}`);
 
             }
         }
+        console.log("Validation passed");
         return next();
     }
 }
