@@ -62,7 +62,7 @@ router.put("/schedules/interests/:idx", checkAuth(MANAGER), checkValidity({ [DAT
 }))
 
 // 관심사 스케줄 삭제
-router.put("/schedules/interests/:idx", checkAuth(MANAGER), checkValidity({ "numberField": ["idx"] }), endRequestHandler(async (req, res, next) => {
+router.put("/schedules/interests/:idx", checkAuth(MANAGER), checkValidity({ [PARAM_REGEX]: ["idx"] }), endRequestHandler(async (req, res, next) => {
     const { idx } = req.params;
     const loginUser = req.decoded;
 
@@ -77,9 +77,10 @@ router.put("/schedules/interests/:idx", checkAuth(MANAGER), checkValidity({ "num
 
     // 스케줄 삭제
     await psql.query(`
-        DELETE FROM calenduck.interest_schedule
-        WHERE idx = $1
-    `, [idx]);
+        DELETE FROM calenduck.interest_schedule CIS
+        USING calenduck.manager CM
+        WHERE CIS.idx = $1 AND CM.user_idx = $2 AND CIS.user_idx = CM.user_idx
+    `, [idx, loginUser.idx]);
 
     return res.sendStatus(201);
 }))
