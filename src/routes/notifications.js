@@ -20,6 +20,8 @@ router.get("/", checkAuth(LOGIN), checkValidity({[PARAM_REGEX]: ["page"]}), endR
         .aggregate([
           { $match: { user_idx: loginUser.idx}},
           {$project: {
+            _id: 0,
+            idx: "$_id",
             type: "$type",
             date: "$created_at",
             content: "$data.contents",
