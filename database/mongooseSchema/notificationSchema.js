@@ -3,7 +3,7 @@ const { Schema } = mongoose;
 
 const notificationSchema = new mongoose.Schema({
   type: {
-    type: String,
+    type: Number,
     required: true,
   },
   user_idx: {
