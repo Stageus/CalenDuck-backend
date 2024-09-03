@@ -18,6 +18,7 @@ const {
     PARAM_REGEX,
     MAX_LENGTH_100_REGEX,
     MAX_LENGTH_300_REGEX,
+    MANAGER_NOTI,
     REPLY_NOTI,
     MASTER
 } = require("../constants");
@@ -153,7 +154,7 @@ router.post("/users/permission", checkAuth(MASTER), checkValidity({ [PARAM_REGEX
 
     await psqlClient.query("COMMIT");
 
-    makeNotification(userIdx, "manager", { "interest": userAndInterest.interest });
+    makeNotification(userIdx, MANAGER_NOTI, { "interest": userAndInterest.interest });
 
     return res.sendStatus(201);
 }))
