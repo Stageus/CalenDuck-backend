@@ -46,29 +46,42 @@ const checkValidity = (data) => {
                     req.params[item] ? (source = "params", req.params[item]) :
                         req.query[item] ? (source = "query", req.query[item]) :
                             null;
+                
+                // 콘솔 로그 추가
+                console.log(`Processing field: ${item}`);
+                console.log(`Value: ${value}`);
+                console.log(`Source: ${source}`);
 
                 const stringFieldArray = [MAX_LENGTH_50_REGEX.source, MAX_LENGTH_100_REGEX.source, MAX_LENGTH_300_REGEX.source];
 
                 const regexParts = typeKey.match(/\/(.*?)\/([gimy]*)$/);
                 const regex = new RegExp(regexParts[1], regexParts[2]);
 
+                // 콘솔 로그 추가
+                console.log(`Regex being used: ${regex}`);
+
                 // 값이 없으면, 에러처리
                 if (!value) {
+                    console.log(`No value found for ${item}, throwing BadRequestException`);
                     return next(new BadRequestException());
                 }
 
                 if (!regex.test(value)) {
+                    console.log(`Value does not match regex for ${item}, throwing BadRequestException`);
                     return next(new BadRequestException());
                 }
 
                 if (regex.source === PARAM_REGEX.source) {
                     req[source][item] = parseInt(req[source][item]);
+                    console.log(`Parsed ${item} as int: ${req[source][item]}`);
                 } else if (stringFieldArray.includes(regex.source)) {
                     req[source][item] = value.replace(WHITESPACE_REGEX, ' ');
+                    console.log(`Replaced whitespace for ${item}: ${req[source][item]}`);
                 }
 
             }
         }
+        console.log('Validation passed, moving to next middleware.');
         return next();
     }
 }
