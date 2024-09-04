@@ -79,7 +79,7 @@ router.delete("/schedules/interests/:idx", checkAuth(MANAGER), checkValidity({ [
     await psql.query(`
         DELETE FROM calenduck.interest_schedule CIS
         USING calenduck.manager CM
-        WHERE CIS.idx = $1 AND CM.user_idx = $2 AND CIS.user_idx = CM.user_idx
+        WHERE CIS.idx = $1 AND CM.user_idx = $2;
     `, [idx, loginUser.idx]);
 
     return res.sendStatus(201);
