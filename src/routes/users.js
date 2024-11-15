@@ -22,7 +22,7 @@ require('../passport/kakaoStrategy')();
 const { SIGNUP, FIND_ID, FIND_PW, LOGIN } = require("../constants");
 
 //로그인
-router.post("/login", checkValidity({[ID_REGEX]: ["id"], [PW_REGEX]: ["pw"]}), endRequestHandler(async (req, res, next) => {
+router.post("/login", checkValidity({ [ID_REGEX]: ["id"], [PW_REGEX]: ["pw"] }), endRequestHandler(async (req, res, next) => {
   const { id, pw } = req.body;
 
   const loginUser = await getOneResult(`
@@ -102,7 +102,7 @@ router.post("/pw/find", checkAuth(FIND_PW), endRequestHandler(async (req, res, n
 );
 
 //비밀번호 재설정
-router.put("/pw", checkAuth(FIND_PW), checkValidity({[PW_REGEX]: ["pw"]}), endRequestHandler(async (req, res, next) => {
+router.put("/pw", checkAuth(FIND_PW), checkValidity({ [PW_REGEX]: ["pw"] }), endRequestHandler(async (req, res, next) => {
   const { pw } = req.body;
   const { email } = req.decoded;
 
@@ -117,14 +117,14 @@ router.put("/pw", checkAuth(FIND_PW), checkValidity({[PW_REGEX]: ["pw"]}), endRe
 );
 
 //아이디 중복 체크
-router.get("/check-id", checkValidity({[ID_REGEX]: ["id"]}), checkDuplicatedId,
+router.post("/check-id", checkValidity({ [ID_REGEX]: ["id"] }), checkDuplicatedId,
   async (req, res, next) => {
     return res.sendStatus(201);
   }
 );
 
 //회원가입
-router.post("/", checkAuth(SIGNUP), checkValidity({[ID_REGEX]: ["id"], [PW_REGEX]: ["pw"], [NICKNAME_REGEX]: ["nickname"]}), checkDuplicatedId, endRequestHandler(async (req, res, next) => {
+router.post("/", checkAuth(SIGNUP), checkValidity({ [ID_REGEX]: ["id"], [PW_REGEX]: ["pw"], [NICKNAME_REGEX]: ["nickname"] }), checkDuplicatedId, endRequestHandler(async (req, res, next) => {
   const { id, pw, nickname } = req.body;
   const email = req.decoded.email;
 
@@ -167,13 +167,13 @@ router.delete("/", checkAuth(LOGIN), endRequestHandler(async (req, res, next) =>
   `, [loginUser.idx]);
 
   const psqlClient = await psql.connect();
-  
+
   try {
     const role = user.role;
     const loginIdx = user?.login_idx || null;
     const kakaoIdx = user?.kakao_idx || null;
 
-    if(role === "manager") {
+    if (role === "manager") {
       await psqlClient.query(`
         UPDATE calenduck.interest
         SET is_assigned = false,
