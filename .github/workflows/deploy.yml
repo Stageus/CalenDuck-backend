@@ -1,0 +1,28 @@
+name: deploy to EC2
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Deploy to EC2
+        env:
+          HOST: ${{ secrets.EC2_HOST }}
+          KEY: ${{ secrets.EC2_KEY }}
+          USER: ubuntu
+        run: |
+          echo "$KEY" > key.pem
+          chmod 400 key.pem
+          ssh -o StrictHostKeyChecking=no -i key.pem $USER@$HOST << 'EOF'
+            cd ./calenduck/CalenDuck-backend
+            git pull origin master
+            pm2 restart server.js            
+          EOF
