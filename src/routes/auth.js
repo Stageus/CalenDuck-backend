@@ -103,7 +103,7 @@ router.post("/check-code", checkValidity({ [EMAIL_REGEX]: ["email"], [CODE_REGEX
 
     const emailToken = makeToken(tokenPayload);
 
-    res.sendStatus(200).send({
+    res.status(200).send({
       emailToken,
     });
   } catch (err) {
