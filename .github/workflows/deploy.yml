@@ -24,5 +24,5 @@ jobs:
           ssh -o StrictHostKeyChecking=no -i key.pem $USER@$HOST << 'EOF'
             cd ./calenduck/CalenDuck-backend
             git pull origin master
-            pm2 restart server.js            
+            npx pm2 restart server.js            
           EOF
