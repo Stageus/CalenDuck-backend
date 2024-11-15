@@ -56,7 +56,7 @@ app.use("/schedules", schedulesApi);
 app.use("/users", usersApi);
 app.use("/interests", interestsApi);
 app.use("/asks", asksApi);
-app.get('/제작자', async (req, res) => {
+app.get('/code-author', async (req, res) => {
   res.send('이수인');
 });
 
