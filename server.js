@@ -57,7 +57,7 @@ app.use("/users", usersApi);
 app.use("/interests", interestsApi);
 app.use("/asks", asksApi);
 app.get('/code-author', async (req, res) => {
-  res.send('이수인');
+  res.send('이수인, 박윤서');
 });
 
 app.use(notFoundApi);
