@@ -206,7 +206,8 @@ router.get("/details", checkAuth(LOGIN), checkValidity({ [DATE_REGEX]: ["fullDat
 
     // 관심사 스케줄 가져오기
     const interestScheduleList = await getManyResults(`
-        SELECT interest_schedule.idx AS idx, interest_schedule.time AS time, interest_schedule.contents AS contents, interest_schedule.priority AS priority, interest.interest AS name
+        SELECT interest_schedule.idx AS idx, interest_schedule.time AS time, interest_schedule.contents AS contents, 
+        interest.interest AS name
         FROM calenduck.interest_schedule
         JOIN calenduck.interest ON interest_schedule.interest_idx = interest.idx
         WHERE DATE(interest_schedule.time) = DATE($1)
@@ -223,8 +224,7 @@ router.get("/details", checkAuth(LOGIN), checkValidity({ [DATE_REGEX]: ["fullDat
             idx: schedule.idx,
             time: schedule.time,
             type: 'personal',
-            contents: schedule.contents,
-            priority: schedule.priority
+            contents: schedule.contents
         });
     });
 
@@ -235,8 +235,7 @@ router.get("/details", checkAuth(LOGIN), checkValidity({ [DATE_REGEX]: ["fullDat
             name: schedule.name,
             time: schedule.time,
             type: 'interest',
-            contents: schedule.contents,
-            priority: schedule.priority
+            contents: schedule.contents
         });
     });
 
@@ -265,7 +264,7 @@ router.get("/searches", checkAuth(LOGIN), checkValidity({ [DATE_REGEX]: ["startD
 
     // 관심사 스케줄 검색
     const interestScheduleList = await getManyResults(`
-        SELECT interest_schedule.idx, interest_schedule.time, interest_schedule.contents, interest_schedule.priority, interest.interest
+        SELECT interest_schedule.idx, interest_schedule.time, interest_schedule.contents, interest.interest
         FROM calenduck.interest_schedule
         JOIN calenduck.interest ON interest_schedule.interest_idx = interest.idx
         WHERE (interest_schedule.time BETWEEN TO_DATE($1, 'YYYYMMDD') AND TO_DATE($2, 'YYYYMMDD'))
@@ -283,8 +282,7 @@ router.get("/searches", checkAuth(LOGIN), checkValidity({ [DATE_REGEX]: ["startD
             idx: schedule.idx,
             date_time: schedule.time,
             type: 'personal',
-            contents: schedule.contents,
-            priority: schedule.priority
+            contents: schedule.contents
         });
     });
 
@@ -295,8 +293,7 @@ router.get("/searches", checkAuth(LOGIN), checkValidity({ [DATE_REGEX]: ["startD
             name: schedule.interest,
             date_time: schedule.time,
             type: 'interest',
-            contents: schedule.contents,
-            priority: schedule.priority
+            contents: schedule.contents
         });
     });
 
