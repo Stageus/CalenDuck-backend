@@ -224,7 +224,8 @@ router.get("/details", checkAuth(LOGIN), checkValidity({ [DATE_REGEX]: ["fullDat
             idx: schedule.idx,
             time: schedule.time,
             type: 'personal',
-            contents: schedule.contents
+            contents: schedule.contents,
+            priority: schedule.priority
         });
     });
 
@@ -282,7 +283,8 @@ router.get("/searches", checkAuth(LOGIN), checkValidity({ [DATE_REGEX]: ["startD
             idx: schedule.idx,
             date_time: schedule.time,
             type: 'personal',
-            contents: schedule.contents
+            contents: schedule.contents,
+            priority: schedule.priority
         });
     });
 
