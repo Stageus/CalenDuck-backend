@@ -6,23 +6,23 @@ const psql = require("../../database/connect/postgre");
 const checkAuth = require("../middlewares/checkAuth");
 const checkValidity = require("../middlewares/checkValidity");
 
-const { 
-    NotFoundException 
+const {
+    NotFoundException
 } = require("../model/customException");
 
-const { 
+const {
     getOneResult,
     getManyResults
 } = require("../modules/sqlHandler");
 const endRequestHandler = require("../modules/endRequestHandler");
 
 const { DATE_REGEX,
-        DATE_TIME_REGEX,
-        YEAR_MONTH_REGEX, 
-        MAX_LENGTH_50_REGEX,
-        MAX_LENGTH_100_REGEX,
-        PARAM_REGEX,
-        LOGIN } = require("../constants");
+    DATE_TIME_REGEX,
+    YEAR_MONTH_REGEX,
+    MAX_LENGTH_50_REGEX,
+    MAX_LENGTH_100_REGEX,
+    PARAM_REGEX,
+    LOGIN } = require("../constants");
 
 // 특정 년월 스케줄 전체 불러오기
 router.get("/", checkAuth(LOGIN), checkValidity({ [YEAR_MONTH_REGEX]: ["yearMonth"], }), endRequestHandler(async (req, res, next) => {
@@ -52,7 +52,9 @@ router.get("/", checkAuth(LOGIN), checkValidity({ [YEAR_MONTH_REGEX]: ["yearMont
         GROUP BY CIS.idx, day, CI.interest
     `, [year, month]);
 
-    if (personalScheduleList.length === 0 && interestScheduleList.length === 0) return res.sendStatus(204); 
+    if (personalScheduleList.length === 0 && interestScheduleList.length === 0) return res.status(200).send({
+        list: scheduleList
+    });
 
     // 개인 스케줄을 날짜별로 추가
     personalScheduleList.forEach((schedule) => {
@@ -67,10 +69,10 @@ router.get("/", checkAuth(LOGIN), checkValidity({ [YEAR_MONTH_REGEX]: ["yearMont
     interestScheduleList.forEach((schedule) => {
         const dayIndex = schedule.day - 1;
         scheduleList[dayIndex].push({
-          idx: schedule.idx,
-          type: 'interest',
-          name: schedule.name,
-          count: schedule.count,
+            idx: schedule.idx,
+            type: 'interest',
+            name: schedule.name,
+            count: schedule.count,
         });
     });
 
@@ -94,7 +96,7 @@ router.get("/interest", checkAuth(LOGIN), checkValidity({ [YEAR_MONTH_REGEX]: ["
         FROM calenduck.interest 
         WHERE idx = $1
     `, [interestIdx]);
-    
+
     // 관심사 idx가 없을 시
     if (!interest) return next(new NotFoundException());
 
@@ -112,7 +114,9 @@ router.get("/interest", checkAuth(LOGIN), checkValidity({ [YEAR_MONTH_REGEX]: ["
         GROUP BY idx, EXTRACT(DAY FROM time), contents;
     `, [year, month, interestIdx]);
 
-    if (interestScheduleList.length === 0) return res.sendStatus(204);
+    if (interestScheduleList.length === 0) return res.status(200).send({
+        list: scheduleList
+    });
 
     // 관심사 스케줄을 날짜별로 리스트에 추가
     interestScheduleList.forEach(schedule => {
@@ -143,7 +147,7 @@ router.get("/details/interest", checkAuth(LOGIN), checkValidity({ [DATE_REGEX]: 
     // 관심사 idx가 없을 시
     if (!interest) return next(new NotFoundException());
 
-    const year = fullDate.substring(0, 4); 
+    const year = fullDate.substring(0, 4);
     const month = fullDate.substring(4, 6);
     const day = fullDate.substring(6, 8)
 
@@ -161,7 +165,9 @@ router.get("/details/interest", checkAuth(LOGIN), checkValidity({ [DATE_REGEX]: 
     `, [`${year}-${month}-${day}`, interestIdx]);
 
     // 스케줄이 없는 경우
-    if (interestScheduleList.length === 0) return res.sendStatus(204); 
+    if (interestScheduleList.length === 0) return res.status(200).send({
+        list: scheduleList
+    });
 
     // 관심사 스케줄을 리스트에 추가
     interestScheduleList.forEach(schedule => {
@@ -207,7 +213,9 @@ router.get("/details", checkAuth(LOGIN), checkValidity({ [DATE_REGEX]: ["fullDat
     `, [`${year}-${month}-${day}`]);
 
     // 스케줄이 없는 경우
-    if (personalScheduleList === 0 && interestScheduleList.length === 0) return res.sendStatus(204);
+    if (personalScheduleList === 0 && interestScheduleList.length === 0) return res.status(200).send({
+        list: scheduleList
+    });
 
     // 개인 스케줄을 리스트에 추가
     personalScheduleList.forEach(schedule => {
@@ -231,7 +239,7 @@ router.get("/details", checkAuth(LOGIN), checkValidity({ [DATE_REGEX]: ["fullDat
             priority: schedule.priority
         });
     });
-    
+
     // 결과 반환
     return res.status(200).send({
         list: scheduleList
@@ -239,7 +247,7 @@ router.get("/details", checkAuth(LOGIN), checkValidity({ [DATE_REGEX]: ["fullDat
 }))
 
 // 스케줄 검색
-router.get("/searches", checkAuth(LOGIN), checkValidity({ [DATE_REGEX]: ["startDate"],[DATE_REGEX]: ["endDate"],[MAX_LENGTH_50_REGEX]: ["content"] }),endRequestHandler(async (req, res, next) => {
+router.get("/searches", checkAuth(LOGIN), checkValidity({ [DATE_REGEX]: ["startDate"], [DATE_REGEX]: ["endDate"], [MAX_LENGTH_50_REGEX]: ["content"] }), endRequestHandler(async (req, res, next) => {
     const { startDate, endDate, content } = req.query;
     const loginUser = req.decoded;
 
@@ -265,7 +273,9 @@ router.get("/searches", checkAuth(LOGIN), checkValidity({ [DATE_REGEX]: ["startD
     `, [startDate, endDate, content]);
 
     // 스케줄이 없는 경우
-    if (personalScheduleList.length === 0 && interestScheduleList.length === 0) return res.sendStatus(204);
+    if (personalScheduleList.length === 0 && interestScheduleList.length === 0) return res.status(200).send({
+        list: scheduleList
+    });
 
     // 개인 스케줄을 리스트에 추가
     personalScheduleList.forEach(schedule => {
@@ -318,7 +328,7 @@ router.post("/:idx/notify", checkAuth(LOGIN), checkValidity({ [PARAM_REGEX]: ["i
         WHERE idx = $1 AND user_idx = $2
     `, [idx, loginUser.idx]);
 
-   return res.sendStatus(201);
+    return res.sendStatus(201);
 }))
 
 // 스케줄 중요 알림 설정 삭제하기
@@ -343,7 +353,7 @@ router.delete("/:idx/notify", checkAuth(LOGIN), checkValidity({ [PARAM_REGEX]: [
         WHERE idx = $1 AND user_idx = $2
     `, [idx, loginUser.idx]);
 
-   return res.sendStatus(201);
+    return res.sendStatus(201);
 }))
 
 // 관심사 스케줄 중요 알림 설정 추가하기
@@ -367,7 +377,7 @@ router.post("/interest/:idx/notify", checkAuth(LOGIN), checkValidity({ [PARAM_RE
         VALUES ($1, $2)
     `, [loginUser.idx, idx]);
 
-     return res.sendStatus(201);
+    return res.sendStatus(201);
 }))
 
 // 관심사 스케줄 중요 알림 설정 삭제하기
