@@ -4,7 +4,7 @@
  * @param {Date} date
  */
 const timeToUTC = (date) => {
-    const timeDiff = date.getTimezoneOffset(); // 540
+    const timeDiff = -540; // 540
 
     date.setHours(date.getHours() + timeDiff / 60);
 
