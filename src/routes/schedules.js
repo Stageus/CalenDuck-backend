@@ -240,12 +240,13 @@ router.get("/details", checkAuth(LOGIN), checkValidity({ [DATE_REGEX]: ["fullDat
             calenduck.interest ON interest_schedule.interest_idx = interest.idx
         WHERE 
             DATE(interest_schedule.time) = DATE($1)
-        ${interestIdx ? `
+        ${!isNaN(interestIdx) ? `
         AND
             interest_schedule.interest_idx = $2
         ` : ``} 
         ORDER BY time ASC
-    `, [`${year}-${month}-${day}`, !isNaN(interestIdx) ? interestIdx : undefined]);
+    `,
+        [`${year}-${month}-${day}`, !isNaN(interestIdx) ? interestIdx : undefined]);
 
     // 관심사 스케줄을 리스트에 추가
     interestScheduleList.forEach(schedule => {
