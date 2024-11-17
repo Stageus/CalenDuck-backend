@@ -202,6 +202,7 @@ router.get("/details", checkAuth(LOGIN), checkValidity({ [DATE_REGEX]: ["fullDat
         SELECT personal_schedule.idx AS idx, personal_schedule.time AS time, personal_schedule.contents AS contents, personal_schedule.priority AS priority
         FROM calenduck.personal_schedule
         WHERE DATE(personal_schedule.time) = DATE($1) AND personal_schedule.user_idx = $2
+        ORDER BY time ASC
     `, [`${year}-${month}-${day}`, loginUser.idx]);
 
     // 관심사 스케줄 가져오기
@@ -211,6 +212,7 @@ router.get("/details", checkAuth(LOGIN), checkValidity({ [DATE_REGEX]: ["fullDat
         FROM calenduck.interest_schedule
         JOIN calenduck.interest ON interest_schedule.interest_idx = interest.idx
         WHERE DATE(interest_schedule.time) = DATE($1)
+        ORDER BY time ASC
     `, [`${year}-${month}-${day}`]);
 
     // 스케줄이 없는 경우
