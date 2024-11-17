@@ -6,6 +6,8 @@ const psql = require("../../database/connect/postgre");
 const checkAuth = require("../middlewares/checkAuth");
 const checkValidity = require("../middlewares/checkValidity");
 
+const timeToUTC = require("../modules/timeToUTC");
+
 const {
     NotFoundException
 } = require("../model/customException");
@@ -222,11 +224,9 @@ router.get("/details", checkAuth(LOGIN), checkValidity({ [DATE_REGEX]: ["fullDat
 
     // 개인 스케줄을 리스트에 추가
     personalScheduleList.forEach(schedule => {
-        const adjustedTime = new Date(schedule.time.getTime() - 9 * 60 * 60 * 1000);
-
         scheduleList.push({
             idx: schedule.idx,
-            time: adjustedTime.toISOString(),
+            time: timeToUTC(schedule.time),
             type: 'personal',
             contents: schedule.contents,
             priority: schedule.priority
@@ -238,7 +238,7 @@ router.get("/details", checkAuth(LOGIN), checkValidity({ [DATE_REGEX]: ["fullDat
         scheduleList.push({
             idx: schedule.idx,
             name: schedule.name,
-            time: schedule.time,
+            time: timeToUTC(schedule.time),
             type: 'interest',
             contents: schedule.contents
         });
