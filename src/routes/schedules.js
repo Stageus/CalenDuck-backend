@@ -176,7 +176,7 @@ router.get("/details/interest", checkAuth(LOGIN), checkValidity({ [DATE_REGEX]: 
         scheduleList.push({
             idx: schedule.idx,
             name: schedule.name,
-            time: schedule.time,
+            time: timeToUTC(schedule.time),
             contents: schedule.contents,
         });
     });
