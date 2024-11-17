@@ -222,9 +222,11 @@ router.get("/details", checkAuth(LOGIN), checkValidity({ [DATE_REGEX]: ["fullDat
 
     // 개인 스케줄을 리스트에 추가
     personalScheduleList.forEach(schedule => {
+        const adjustedTime = new Date(schedule.time.getTime() - 9 * 60 * 60 * 1000);
+
         scheduleList.push({
             idx: schedule.idx,
-            time: schedule.time,
+            time: adjustedTime.toISOString(),
             type: 'personal',
             contents: schedule.contents,
             priority: schedule.priority
