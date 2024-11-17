@@ -246,7 +246,8 @@ router.get("/details", checkAuth(LOGIN), checkValidity({ [DATE_REGEX]: ["fullDat
         ` : ``} 
         ORDER BY time ASC
     `,
-        [`${year}-${month}-${day}`, !isNaN(interestIdx) ? interestIdx : undefined]);
+        isNaN(interestIdx) ? [`${year}-${month}-${day}`] : [`${year}-${month}-${day}`, interestIdx]
+    );
 
     // 관심사 스케줄을 리스트에 추가
     interestScheduleList.forEach(schedule => {
