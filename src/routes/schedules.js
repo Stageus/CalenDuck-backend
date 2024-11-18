@@ -49,7 +49,7 @@ router.get("/", checkAuth(LOGIN), checkValidity({ [YEAR_MONTH_REGEX]: ["yearMont
         SELECT 
             calenduck.interest_schedule.idx, 
             calenduck.interest_schedule.COUNT(*) AS count, 
-            calenduck.interest_schedule.EXTRACT(DAY FROM time) as day, 
+            calenduck.interest_schedule.EXTRACT(DAY FROM calenduck.interest_schedule.time) as day, 
             calenduck.interest.interest as name
         FROM 
             calenduck.interest_schedule
