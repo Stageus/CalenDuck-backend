@@ -32,19 +32,17 @@ router.get("/", checkAuth(LOGIN), checkValidity({ [YEAR_MONTH_REGEX]: ["yearMont
     const { yearMonth } = req.query;
     const loginUser = req.decoded;
 
+    const interestIdx = Number(req.query.interestIdx);
+
+    if (req.query.interestIdx && isNaN(interestIdx)) {
+        return next(new BadRequestException("Invalid intersest idx"));
+    }
+
     const year = yearMonth.substring(0, 4);
     const month = yearMonth.substring(4, 6);
 
     // 날짜별로 빈 리스트 초기화(31개)
     const scheduleList = Array.from({ length: 31 }, () => []);
-
-    // 개인 스케줄 가져오기
-    const personalScheduleList = await getManyResults(`
-        SELECT EXTRACT(DAY FROM time) AS day, COUNT(*)::int AS count
-        FROM calenduck.personal_schedule
-        WHERE EXTRACT(YEAR FROM time) = $1 AND EXTRACT(MONTH FROM time) = $2 AND user_idx = $3
-        GROUP BY EXTRACT(DAY FROM time)
-    `, [year, month, loginUser.idx]);
 
     // 관심사 스케줄 가져오기
     const interestScheduleList = await getManyResults(`
@@ -55,17 +53,31 @@ router.get("/", checkAuth(LOGIN), checkValidity({ [YEAR_MONTH_REGEX]: ["yearMont
         GROUP BY CIS.idx, day, CI.interest
     `, [year, month]);
 
-    if (personalScheduleList.length === 0 && interestScheduleList.length === 0) return res.status(200).send({
-        list: scheduleList
-    });
+    if (!interestIdx) {
+        // 개인 스케줄 가져오기
+        const personalScheduleList = await getManyResults(`
+            SELECT EXTRACT(DAY FROM time) AS day, COUNT(*)::int AS count
+            FROM calenduck.personal_schedule
+            WHERE EXTRACT(YEAR FROM time) = $1 AND EXTRACT(MONTH FROM time) = $2 AND user_idx = $3
+            GROUP BY EXTRACT(DAY FROM time)
+        `, [year, month, loginUser.idx]);
 
-    // 개인 스케줄을 날짜별로 추가
-    personalScheduleList.forEach((schedule) => {
-        const dayIndex = schedule.day - 1; // 배열 인덱스는 0부터 시작
-        scheduleList[dayIndex].push({
-            type: 'personal',
-            count: schedule.count,
+        if (personalScheduleList.length === 0 && interestScheduleList.length === 0) return res.status(200).send({
+            list: scheduleList
+        })
+
+        // 개인 스케줄을 날짜별로 추가
+        personalScheduleList.forEach((schedule) => {
+            const dayIndex = schedule.day - 1; // 배열 인덱스는 0부터 시작
+            scheduleList[dayIndex].push({
+                type: 'personal',
+                count: schedule.count,
+            });
         });
+    }
+
+    if (interestIdx && interestScheduleList.length === 0) return res.status(200).send({
+        list: scheduleList
     });
 
     // 관심사 스케줄을 날짜별로 추가
