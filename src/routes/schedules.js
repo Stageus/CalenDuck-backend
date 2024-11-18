@@ -46,12 +46,11 @@ router.get("/", checkAuth(LOGIN), checkValidity({ [YEAR_MONTH_REGEX]: ["yearMont
 
     // 관심사 스케줄 가져오기
     const interestScheduleList = await getManyResults(`
-        SELECT CIS.idx, EXTRACT(DAY FROM CIS.time) AS day, COUNT(*)::int AS count, CI.interest AS name
-        FROM calenduck.interest_schedule CIS
-        JOIN calenduck.interest CI ON CIS.interest_idx = CI.idx
-        WHERE EXTRACT(YEAR FROM CIS.time) = $1 AND EXTRACT(MONTH FROM CIS.time) = $2
-        GROUP BY CIS.idx, day, CI.interest
-    `, [year, month]);
+        SELECT idx, COUNT(*) AS count, EXTRACT(DAY FROM time) as day, contents as interestName
+        FROM calenduck.interest_schedule
+        WHERE EXTRACT(YEAR FROM time) = $1 AND EXTRACT(MONTH FROM time) = $2 AND interest_idx = $3
+        GROUP BY idx, EXTRACT(DAY FROM time), contents;
+    `, [year, month, interestIdx]);
 
     if (!interestIdx) {
         // 개인 스케줄 가져오기
