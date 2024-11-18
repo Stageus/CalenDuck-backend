@@ -28,8 +28,6 @@ router.get("/all", checkAuth(LOGIN), endRequestHandler(async (req, res, next) =>
     ORDER BY interest ASC
   `)
 
-  if (interestList.length === 0) return res.sendStatus(204);
-
   return res.status(200).send({
     list: interestList
   });
@@ -46,8 +44,6 @@ router.get("/", checkAuth(LOGIN), endRequestHandler(async (req, res, next) => {
     WHERE CUI.user_idx = $1
     ORDER BY interest ASC
   `, [loginUser.idx]);
-
-  if (!interestList || interestList.length === 0) return res.sendStatus(204);
 
   return res.status(200).send({
     list: interestList,
