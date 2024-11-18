@@ -47,12 +47,14 @@ router.get("/", checkAuth(LOGIN), checkValidity({ [YEAR_MONTH_REGEX]: ["yearMont
     // 관심사 스케줄 가져오기
     const interestScheduleList = await getManyResults(`
         SELECT 
-            idx, 
-            COUNT(*) AS count, 
-            EXTRACT(DAY FROM time) as day, 
-            contents as interestName
+            calenduck.interest_schedule.idx, 
+            calenduck.interest_schedule.COUNT(*) AS count, 
+            calenduck.interest_schedule.EXTRACT(DAY FROM time) as day, 
+            calenduck.interest.interest as name
         FROM 
             calenduck.interest_schedule
+        JOIN
+            calenduck.interest ON interest_schedule.interest_idx = interest.idx
         WHERE 
             EXTRACT(YEAR FROM time) = $1 
         AND 
