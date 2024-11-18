@@ -56,13 +56,13 @@ router.get("/", checkAuth(LOGIN), checkValidity({ [YEAR_MONTH_REGEX]: ["yearMont
         JOIN
             calenduck.interest ON interest_schedule.interest_idx = interest.idx
         WHERE 
-            EXTRACT(YEAR FROM time) = $1 
+            EXTRACT(YEAR FROM calenduck.interest_schedule.time) = $1 
         AND 
-            EXTRACT(MONTH FROM time) = $2 
+            EXTRACT(MONTH FROM calenduck.interest_schedule.time) = $2 
         ${req.query.interestIdx ? `
         AND 
             interest_idx = $3` : ``}
-        GROUP BY idx, EXTRACT(DAY FROM time), contents;
+        GROUP BY calenduck.interest_schedule.idx, EXTRACT(DAY FROM calenduck.interest_schedule.time), calenduck.interest.interest;
     `, req.query.interestIdx ? [year, month, interestIdx] : [year, month]);
 
     if (!interestIdx) {
