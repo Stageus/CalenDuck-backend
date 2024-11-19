@@ -20,6 +20,8 @@ const {
 
 // 관리자 할당된 관심사 목록 불러오기
 router.get("/all", checkAuth(LOGIN), endRequestHandler(async (req, res, next) => {
+  const loginUser = req.decoded;
+
   const interestList = await getManyResults(`
     SELECT idx AS "interestIdx", interest AS "interestName"
     FROM calenduck.interest
@@ -28,8 +30,17 @@ router.get("/all", checkAuth(LOGIN), endRequestHandler(async (req, res, next) =>
     ORDER BY interest ASC
   `)
 
+  const userInterestList = await getManyResults(`
+    SELECT interest_idx 
+    FROM calenduck.user_interest
+    WHERE user_idx = $1 
+  `, [loginUser.idx]);
+  const userInterestData = userInterestList.rows.map(row => row.interest_idx);
+
+  const filteredData = interestList.filter(item => !userInterestData.includes(item.interestIdx));
+
   return res.status(200).send({
-    list: interestList
+    list: filteredData
   });
 }))
 
