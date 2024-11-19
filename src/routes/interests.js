@@ -87,6 +87,12 @@ router.post("/:idx", checkAuth(LOGIN), checkValidity({ [PARAM_REGEX]: ["idx"] })
   if (user.interest_count >= 5) return next(new UnprocessableEntityException("cannot add more interests"));
 
   await psql.query(`
+    UPDATE calenduck.user
+    SET interest_count = interest_count + 1
+    WHERE idx = $1;
+  `, [loginUser.idx]);
+
+  await psql.query(`
     INSERT INTO calenduck.user_interest(user_idx, interest_idx) 
     VALUES($1, $2)
   `, [loginUser.idx, interestIdx]);
