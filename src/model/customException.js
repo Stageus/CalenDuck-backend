@@ -68,5 +68,6 @@ module.exports = {
   ForbiddenException,
   NotFoundException,
   ConflictException,
+  UnprocessableEntityException,
   TooManyRequestsException,
 };

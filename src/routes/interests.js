@@ -5,7 +5,10 @@ const psql = require("../../database/connect/postgre");
 const checkAuth = require("../middlewares/checkAuth");
 const checkValidity = require("../middlewares/checkValidity");
 
-const { NotFoundException } = require("../model/customException");
+const {
+  NotFoundException,
+  UnprocessableEntityException
+} = require("../model/customException");
 
 const {
   getManyResults,
@@ -66,6 +69,22 @@ router.get("/", checkAuth(LOGIN), endRequestHandler(async (req, res, next) => {
 router.post("/:idx", checkAuth(LOGIN), checkValidity({ [PARAM_REGEX]: ["idx"] }), endRequestHandler(async (req, res, next) => {
   const { idx: interestIdx } = req.params;
   const loginUser = req.decoded;
+
+  const interest = await getOneResult(`
+    SELECT idx
+    FROM calenduck.interest
+    WHERE idx = $1  
+  `, [interestIdx]);
+
+  if (!interest) return next(new NotFoundException("idx does not exist"));
+
+  const user = await getOneResult(`
+    SELECT interest_count
+    FROM calenduck.user
+    WHERE idx = $1
+  `, [loginUser.idx]);
+
+  if (user.interest_count >= 5) return next(new UnprocessableEntityException("cannot add more interests"));
 
   await psql.query(`
     INSERT INTO calenduck.user_interest(user_idx, interest_idx) 
