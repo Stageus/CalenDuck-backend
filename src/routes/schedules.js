@@ -49,21 +49,32 @@ router.get("/", checkAuth(LOGIN), checkValidity({ [YEAR_MONTH_REGEX]: ["yearMont
         SELECT 
             calenduck.interest_schedule.idx, 
             COUNT(*) AS count, 
-            EXTRACT(DAY FROM calenduck.interest_schedule.time) as day, 
-            calenduck.interest.interest as name
+            EXTRACT(DAY FROM calenduck.interest_schedule.time) AS day, 
+            calenduck.interest.interest AS name
         FROM 
             calenduck.interest_schedule
-        JOIN
-            calenduck.interest ON interest_schedule.interest_idx = interest.idx
+        JOIN 
+            calenduck.interest ON calenduck.interest_schedule.interest_idx = calenduck.interest.idx
         WHERE 
             EXTRACT(YEAR FROM calenduck.interest_schedule.time) = $1 
         AND 
-            EXTRACT(MONTH FROM calenduck.interest_schedule.time) = $2 
-        ${req.query.interestIdx ? `
+            EXTRACT(MONTH FROM calenduck.interest_schedule.time) = $2
         AND 
-            interest_idx = $3` : ``}
-        GROUP BY calenduck.interest_schedule.idx, EXTRACT(DAY FROM calenduck.interest_schedule.time), calenduck.interest.interest;
-    `, req.query.interestIdx ? [year, month, interestIdx] : [year, month]);
+            calenduck.interest_schedule.interest_idx IN (
+                ${req.query.interestIdx ? `$3` : `
+                    SELECT 
+                        calenduck.user_interest.interest_idx
+                    FROM 
+                        calenduck.user_interest.user_interest
+                    WHERE 
+                        calenduck.user_interest.user_idx = $3
+                `}
+            )
+        GROUP BY 
+            calenduck.interest_schedule.idx, 
+            EXTRACT(DAY FROM calenduck.interest_schedule.time), 
+            calenduck.interest.interest;
+    `, req.query.interestIdx ? [year, month, req.query.interestIdx] : [year, month, loginUser.idx]);
 
     if (!interestIdx) {
         // 개인 스케줄 가져오기
