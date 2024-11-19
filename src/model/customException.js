@@ -43,6 +43,15 @@ class ConflictException extends customException {
   }
 }
 
+class UnprocessableEntityException extends customException {
+  constructor(
+    message = "해당 요청을 처리할 수 없습니다.",
+    err = null
+  ) {
+    super(422, message, err);
+  }
+}
+
 class TooManyRequestsException extends customException {
   constructor(
     message = "요청 횟수 제한을 초과하였습니다. 잠시 후 다시 시도해 주세요.",
