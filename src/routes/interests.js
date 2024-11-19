@@ -87,7 +87,7 @@ router.delete("/:idx", checkAuth(LOGIN), checkValidity({ [PARAM_REGEX]: ["idx"] 
     RETURNING interest_idx
   `, [loginUser.idx, interestIdx]);
 
-  if (!userInterest) return next(new NotFoundException());
+  if (!userInterest) return next(new NotFoundException("idx does not exist"));
 
   return res.sendStatus(201);
 })
