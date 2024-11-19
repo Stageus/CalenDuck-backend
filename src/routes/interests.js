@@ -35,7 +35,7 @@ router.get("/all", checkAuth(LOGIN), endRequestHandler(async (req, res, next) =>
     FROM calenduck.user_interest
     WHERE user_idx = $1 
   `, [loginUser.idx]);
-  const userInterestData = userInterestList.rows.map(row => row.interest_idx);
+  const userInterestData = userInterestList.map(row => row.interest_idx);
 
   const filteredData = interestList.filter(item => !userInterestData.includes(item.interestIdx));
 
