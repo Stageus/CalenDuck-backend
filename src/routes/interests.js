@@ -114,6 +114,12 @@ router.delete("/:idx", checkAuth(LOGIN), checkValidity({ [PARAM_REGEX]: ["idx"] 
 
   if (!userInterest) return next(new NotFoundException("idx does not exist"));
 
+  await psql.query(`
+    UPDATE calenduck.user
+    SET interest_count = interest_count - 1
+    WHERE idx = $1;
+  `, [loginUser.idx]);
+
   return res.sendStatus(201);
 })
 );
