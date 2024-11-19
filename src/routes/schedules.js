@@ -65,7 +65,7 @@ router.get("/", checkAuth(LOGIN), checkValidity({ [YEAR_MONTH_REGEX]: ["yearMont
                     SELECT 
                         calenduck.user_interest.interest_idx
                     FROM 
-                        calenduck.user_interest.user_interest
+                        calenduck.user_interest
                     WHERE 
                         calenduck.user_interest.user_idx = $3
                 `}
