@@ -79,10 +79,19 @@ router.get("/", checkAuth(LOGIN), checkValidity({ [YEAR_MONTH_REGEX]: ["yearMont
     if (!interestIdx) {
         // 개인 스케줄 가져오기
         const personalScheduleList = await getManyResults(`
-            SELECT EXTRACT(DAY FROM time) AS day, COUNT(*)::int AS count
-            FROM calenduck.personal_schedule
-            WHERE EXTRACT(YEAR FROM time) = $1 AND EXTRACT(MONTH FROM time) = $2 AND user_idx = $3
-            GROUP BY EXTRACT(DAY FROM time)
+            SELECT
+                EXTRACT(DAY FROM time) AS day,
+                COUNT(*)::int AS count
+            FROM
+                calenduck.personal_schedule
+            WHERE
+                EXTRACT(YEAR FROM time) = $1
+            AND
+                EXTRACT(MONTH FROM time) = $2
+            AND
+                user_idx = $3
+            GROUP BY
+                EXTRACT(DAY FROM time)
         `, [year, month, loginUser.idx]);
 
         if (personalScheduleList.length === 0 && interestScheduleList.length === 0) return res.status(200).send({
@@ -177,9 +186,12 @@ router.get("/details/interest", checkAuth(LOGIN), checkValidity({ [DATE_REGEX]: 
 
     // 관심사 idx 조회
     const interest = await getOneResult(`
-        SELECT 1 
-        FROM calenduck.interest 
-        WHERE idx = $1
+        SELECT
+            1 
+        FROM
+            calenduck.interest 
+        WHERE
+            idx = $1
     `, [interestIdx]);
 
     // 관심사 idx가 없을 시
@@ -194,11 +206,19 @@ router.get("/details/interest", checkAuth(LOGIN), checkValidity({ [DATE_REGEX]: 
 
     // 관심사 스케줄 불러오기
     const interestScheduleList = await getManyResults(`
-        SELECT interest_schedule.idx, interest_schedule.time, interest_schedule.contents, interest.interest as name
-        FROM calenduck.interest_schedule
-        JOIN calenduck.interest ON interest_schedule.interest_idx = interest.idx
-        WHERE DATE(interest_schedule.time) = DATE($1)
-        AND interest_schedule.interest_idx = $2
+        SELECT
+            interest_schedule.idx,
+            interest_schedule.time,
+            interest_schedule.contents,
+            interest.interest as name
+        FROM
+            calenduck.interest_schedule
+        JOIN
+            calenduck.interest ON interest_schedule.interest_idx = interest.idx
+        WHERE
+            DATE(interest_schedule.time) = DATE($1)
+        AND
+            interest_schedule.interest_idx = $2
         ORDER BY interest_schedule.time ASC
     `, [`${year}-${month}-${day}`, interestIdx]);
 
@@ -244,9 +264,17 @@ router.get("/details", checkAuth(LOGIN), checkValidity({ [DATE_REGEX]: ["fullDat
     if (!interestIdx) {
         // 개인 스케줄 가져오기
         const personalScheduleList = await getManyResults(`
-        SELECT personal_schedule.idx AS idx, personal_schedule.time AS time, personal_schedule.contents AS contents, personal_schedule.priority AS priority
-        FROM calenduck.personal_schedule
-        WHERE DATE(personal_schedule.time) = DATE($1) AND personal_schedule.user_idx = $2
+        SELECT
+            personal_schedule.idx AS idx,
+            personal_schedule.time AS time,
+            personal_schedule.contents AS contents,
+            personal_schedule.priority AS priority
+        FROM
+            calenduck.personal_schedule
+        WHERE
+            DATE(personal_schedule.time) = DATE($1)
+        AND
+            personal_schedule.user_idx = $2
         ORDER BY time ASC
     `, [`${year}-${month}-${day}`, loginUser.idx]);
 
@@ -311,20 +339,40 @@ router.get("/searches", checkAuth(LOGIN), checkValidity({ [DATE_REGEX]: ["startD
 
     // 개인 스케줄 검색
     const personalScheduleList = await getManyResults(`
-        SELECT personal_schedule.idx, personal_schedule.time, personal_schedule.contents, personal_schedule.priority
-        FROM calenduck.personal_schedule
-        WHERE (personal_schedule.time BETWEEN TO_DATE($1, 'YYYYMMDD') AND TO_DATE($2, 'YYYYMMDD'))
-        AND personal_schedule.contents ILIKE '%' || $3 || '%'
-        AND personal_schedule.user_idx = $4
+        SELECT
+            personal_schedule.idx,
+            personal_schedule.time,
+            personal_schedule.contents,
+            personal_schedule.priority
+        FROM
+            calenduck.personal_schedule
+        WHERE
+            (personal_schedule.time BETWEEN TO_DATE($1, 'YYYYMMDD')
+        AND
+            TO_DATE($2, 'YYYYMMDD'))
+        AND
+            personal_schedule.contents ILIKE '%' || $3 || '%'
+        AND
+            personal_schedule.user_idx = $4
     `, [startDate, endDate, content, loginUser.idx]);
 
     // 관심사 스케줄 검색
     const interestScheduleList = await getManyResults(`
-        SELECT interest_schedule.idx, interest_schedule.time, interest_schedule.contents, interest.interest
-        FROM calenduck.interest_schedule
-        JOIN calenduck.interest ON interest_schedule.interest_idx = interest.idx
-        WHERE (interest_schedule.time BETWEEN TO_DATE($1, 'YYYYMMDD') AND TO_DATE($2, 'YYYYMMDD'))
-        AND interest_schedule.contents ILIKE '%' || $3 || '%'
+        SELECT
+            interest_schedule.idx,
+            interest_schedule.time,
+            interest_schedule.contents,
+            interest.interest
+        FROM
+            calenduck.interest_schedule
+        JOIN
+            calenduck.interest ON interest_schedule.interest_idx = interest.idx
+        WHERE
+            (interest_schedule.time BETWEEN TO_DATE($1, 'YYYYMMDD')
+        AND
+            TO_DATE($2, 'YYYYMMDD'))
+        AND
+            interest_schedule.contents ILIKE '%' || $3 || '%'
     `, [startDate, endDate, content]);
 
     // 스케줄이 없는 경우
@@ -367,9 +415,14 @@ router.post("/:idx/notify", checkAuth(LOGIN), checkValidity({ [PARAM_REGEX]: ["i
 
     // 해당 스케줄의 현재 priority 값 조회
     const schedule = await getOneResult(`
-        SELECT priority
-        FROM calenduck.personal_schedule
-        WHERE idx = $1 AND user_idx = $2
+        SELECT
+            priority
+        FROM
+            calenduck.personal_schedule
+        WHERE
+            idx = $1
+        AND
+            user_idx = $2
     `, [idx, loginUser.idx]);
 
     // 해당 스케줄 없을 시
@@ -377,9 +430,14 @@ router.post("/:idx/notify", checkAuth(LOGIN), checkValidity({ [PARAM_REGEX]: ["i
 
     // priority 값을 true로 설정ㅁ
     await psql.query(`
-        UPDATE calenduck.personal_schedule
-        SET priority = true
-        WHERE idx = $1 AND user_idx = $2
+        UPDATE
+            calenduck.personal_schedule
+        SET
+            priority = true
+        WHERE
+            idx = $1
+        AND
+            user_idx = $2
     `, [idx, loginUser.idx]);
 
     return res.sendStatus(201);
@@ -392,9 +450,14 @@ router.delete("/:idx/notify", checkAuth(LOGIN), checkValidity({ [PARAM_REGEX]: [
 
     // 해당 스케줄의 현재 priority 값 조회
     const schedule = await getOneResult(`
-        SELECT priority
-        FROM calenduck.personal_schedule
-        WHERE idx = $1 AND user_idx = $2
+        SELECT
+            priority
+        FROM
+            calenduck.personal_schedule
+        WHERE
+            idx = $1
+        AND
+            user_idx = $2
     `, [idx, loginUser.idx]);
 
     // 해당 스케줄 없을 시
@@ -402,9 +465,14 @@ router.delete("/:idx/notify", checkAuth(LOGIN), checkValidity({ [PARAM_REGEX]: [
 
     // priority 값을 false로 설정
     await psql.query(`
-        UPDATE calenduck.personal_schedule
-        SET priority = false
-        WHERE idx = $1 AND user_idx = $2
+        UPDATE
+            calenduck.personal_schedule
+        SET
+            priority = false
+        WHERE
+            idx = $1
+        AND
+            user_idx = $2
     `, [idx, loginUser.idx]);
 
     return res.sendStatus(201);
@@ -417,9 +485,12 @@ router.post("/interest/:idx/notify", checkAuth(LOGIN), checkValidity({ [PARAM_RE
 
     // 해당 관심사 스케줄 존재 여부 조회
     const interestSchedule = await getOneResult(`
-        SELECT 1
-        FROM calenduck.interest_schedule
-        WHERE idx = $1
+        SELECT
+            1
+        FROM
+            calenduck.interest_schedule
+        WHERE
+            idx = $1
     `, [idx]);
 
     // 해당 관심사 스케줄 없을 시
@@ -427,7 +498,8 @@ router.post("/interest/:idx/notify", checkAuth(LOGIN), checkValidity({ [PARAM_RE
 
     // 새로운 중요 알림 추가
     await psql.query(`
-        INSERT INTO calenduck.interest_priority (user_idx, interest_schedule_idx)
+        INSERT INTO
+            calenduck.interest_priority (user_idx, interest_schedule_idx)
         VALUES ($1, $2)
     `, [loginUser.idx, idx]);
 
@@ -441,9 +513,12 @@ router.delete("/interest/:idx/notify", checkAuth(LOGIN), checkValidity({ [PARAM_
 
     // 해당 관심사 스케줄 존재 여부 조회
     const interestSchedule = await getOneResult(`
-        SELECT 1
-        FROM calenduck.interest_schedule
-        WHERE idx = $1
+        SELECT
+            1
+        FROM
+            calenduck.interest_schedule
+        WHERE
+            idx = $1
     `, [idx]);
 
     // 해당 관심사 스케줄 없을 시
@@ -451,8 +526,12 @@ router.delete("/interest/:idx/notify", checkAuth(LOGIN), checkValidity({ [PARAM_
 
     // 새로운 중요 알림 삭제
     await psql.query(`
-        DELETE FROM calenduck.interest_priority
-        WHERE interest_schedule_idx = $1 AND user_idx = $2
+        DELETE FROM
+            calenduck.interest_priority
+        WHERE
+            interest_schedule_idx = $1
+        AND
+            user_idx = $2
     `, [idx, loginUser.idx]);
 
     return res.sendStatus(201);
@@ -464,7 +543,8 @@ router.post("/", checkAuth(LOGIN), checkValidity({ [DATE_TIME_REGEX]: ["fullDate
     const loginUser = req.decoded;
 
     await psql.query(`
-        INSERT INTO calenduck.personal_schedule (user_idx, time, contents)
+        INSERT INTO
+            calenduck.personal_schedule (user_idx, time, contents)
         VALUES ($1, $2, $3)
     `, [loginUser.idx, fullDate, personalContents]);
 
@@ -479,18 +559,29 @@ router.put("/:idx", checkAuth(LOGIN), checkValidity({ [DATE_TIME_REGEX]: ["fullD
 
     // 스케줄 존재 여부 확인 
     const personalSchedule = await getOneResult(`
-        SELECT 1
-        FROM calenduck.personal_schedule
-        WHERE idx = $1 AND user_idx = $2
+        SELECT
+            1
+        FROM
+            calenduck.personal_schedule
+        WHERE
+            idx = $1
+        AND
+            user_idx = $2
     `, [idx, loginUser.idx]);
 
     if (!personalSchedule) return next(new NotFoundException());
 
     //스케줄 수정
     await psql.query(`
-        UPDATE calenduck.personal_schedule
-        SET time = $1, contents = $2
-        WHERE idx = $3 AND user_idx = $4 
+        UPDATE
+            calenduck.personal_schedule
+        SET
+            time = $1,
+            contents = $2
+        WHERE
+            idx = $3
+        AND
+            user_idx = $4 
     `, [fullDate, personalContents, idx, loginUser.idx]);
 
     return res.sendStatus(201);
@@ -503,16 +594,25 @@ router.delete("/:idx", checkAuth(LOGIN), checkValidity({ [PARAM_REGEX]: ["idx"] 
 
     // 스케줄 존재 여부 확인 
     const personalSchedule = await getOneResult(`
-        SELECT 1
-        FROM calenduck.personal_schedule
-        WHERE idx = $1 AND user_idx = $2
+        SELECT
+            1
+        FROM
+            calenduck.personal_schedule
+        WHERE
+            idx = $1
+        AND
+            user_idx = $2
     `, [idx, loginUser.idx]);
 
     if (!personalSchedule) return next(new NotFoundException());
 
     await psql.query(`
-        DELETE FROM calenduck.personal_schedule
-        WHERE idx = $1 AND user_idx = $2
+        DELETE FROM
+            calenduck.personal_schedule
+        WHERE
+            idx = $1
+        AND
+            user_idx = $2
     `, [idx, loginUser.idx]);
 
     return res.sendStatus(201);
