@@ -29,6 +29,7 @@ router.get("/", checkAuth(LOGIN), checkValidity({ [PARAM_REGEX]: ["page"] }), en
           interestName: "$data.interest",
           title: "$data.title",
           reply: "$data.reply",
+          is_read: "$is_read",
         }
       }
     ]).sort({ date: "desc" })
